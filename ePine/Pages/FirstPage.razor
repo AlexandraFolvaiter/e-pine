@@ -12,13 +12,16 @@
                         <button type="submit" class="nav-link btn btn-link">Log out</button>
                     </form>
                 </div>
+                <div>
+                    <a type="button" class="btn btn-primary" href="dashboard">My Dashboard</a>
+                    <a type="button" class="btn btn-primary" href="merchants">Search services</a>
+                </div>
 
-                <a type="button" class="btn btn-primary" href="dashbaord">My Dashboard</a>
-                <a type="button" class="btn btn-primary" href="search">Search services</a>
             </Authorized>
             <NotAuthorized>
                 <a type="button" class="btn btn-primary" href="Identity/Account/Register">Register</a>
-                <a type="button" class="btn btn-primary" href="Identity/Account/Login">Log in</a>
+                <a type="button" class="btn btn-primary" href="Identity/Account/Login">Log in</a> 
+                <a type="button" class="btn btn-primary" href="merchants">Search services</a>
             </NotAuthorized>
         </AuthorizeView>
     </div>

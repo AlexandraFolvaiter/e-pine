@@ -9,23 +9,33 @@ h1:focus {
 }
 
 a, .btn-link {
-    color: #0071c1;
+    color: white;
 }
 
-.btn-primary {
+a:hover, .btn-link:hover, a:focus, .btn-link:focus {
+    color: white;
+    border: 0.5px solid;
+}
+
+.btn-primary, .btn-primary:visited {
     color: #fff;
     background-color: #2F8955;
     border-color: #20603B;
 }
 
-.btn-primary:hover {
+.btn-primary:hover, .btn-primary:focus {
     color: #fff;
     background-color: #20603B;
     border-color: #20603B;
 }
 
-.content {
-    padding-top: 1.1rem;
+.btn-outline-primary {
+    color: #2F8955;
+    border-color: #2F8955;
+}
+
+.btn-outline-primary:hover {
+    background-color: #2F8955;
 }
 
 .valid.modified:not([type=checkbox]) {
