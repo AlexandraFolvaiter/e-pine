@@ -1,0 +1,25 @@
+﻿@page "/"
+
+@layout GeneralLayout
+
+<div class="first-page-container">
+    <div id="buttons-container">
+        <AuthorizeView>
+            <Authorized>
+                <div>
+                    <a href="Identity/Account/Manage">Hello, @context.User.Identity?.Name!</a>
+                    <form method="post" action="Identity/Account/LogOut">
+                        <button type="submit" class="nav-link btn btn-link">Log out</button>
+                    </form>
+                </div>
+
+                <a type="button" class="btn btn-primary" href="dashbaord">My Dashboard</a>
+                <a type="button" class="btn btn-primary" href="search">Search services</a>
+            </Authorized>
+            <NotAuthorized>
+                <a type="button" class="btn btn-primary" href="Identity/Account/Register">Register</a>
+                <a type="button" class="btn btn-primary" href="Identity/Account/Login">Log in</a>
+            </NotAuthorized>
+        </AuthorizeView>
+    </div>
+</div>
