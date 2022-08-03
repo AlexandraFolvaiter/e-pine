@@ -14,11 +14,16 @@ else
 {
     <h1>@Merchant.Name</h1>
 
+    <div>
+        @Merchant.Description
+    </div>
+
+    <button class="btn btn-primary">Create an appointment</button>
+
 
     <div class="container">
         <div class="row">
             <div class="col col-6 accordion">
-                
                 <h3>
                     Services
                 </h3>
@@ -39,23 +44,22 @@ else
                                 @foreach (var variant in catalogItem.ItemData.Variations)
                                 {
                                     <div>
-                                        @string.Format("{1} - Duration: {2} - Price: {3}",
-                                            variant.ItemVariationData.Name,
-                                            FormatTime(variant.ItemVariationData.ServiceDuration),
-                                            FormatPrice(variant.ItemVariationData)) 
+                                        @($"{variant.ItemVariationData.Name} - Duration: {FormatTime(variant.ItemVariationData.ServiceDuration)} - Price: {FormatPrice(variant.ItemVariationData)}")
                                     </div>
+                                    <hr/>
                                 }
                             </div>
                         </div >
                     </div>
                 }
             </div>
-            <div class="col col-6"><h3>Meet the team</h3></div>
-        </div>
-    </div> 
-// team members
+            <div class="col col-6">
 
-// create an appointment button 
+                <h3>Meet the team</h3>
+                <h4>Loading...</h4>
+            </div>
+        </div>
+    </div>
 }
 
 @code {
@@ -81,7 +85,7 @@ else
 
     public string FormatTime(long? seconds)
     {
-        var timeSpan = TimeSpan.Parse(seconds.ToString() ?? "0");
+        var timeSpan = TimeSpan.FromMilliseconds(((int)seconds)!);
         return $"{timeSpan.Hours:D2}h:{timeSpan.Minutes:D2}m";
     }
 
@@ -89,7 +93,7 @@ else
     {
         return variation.PricingType == "VARIABLE_PRICING" 
             ? "Price variable" 
-            : $"{variation.PriceMoney.Amount} {variation.PriceMoney.Currency}";
+            : $"{variation.PriceMoney.Amount/100}.{variation.PriceMoney.Amount%100} {variation.PriceMoney.Currency}";
     }
 
 }
