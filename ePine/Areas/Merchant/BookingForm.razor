@@ -2,8 +2,11 @@
 @using ePine.Models
 @using Square
 @using Square.Models
+
+@inject ILocationService LocationService
 @inject ICatalogService CatalogService
 @inject IBookingService BookingService
+
 
 <div class="modal-dialog">
     <div class="modal-content">
@@ -18,14 +21,27 @@
                 
                 <div class="col col-4">
                     <div class="form-field">
+                        <label class="control-label">Location* </label>
+                        <InputSelect class="form-control form-select" @bind-Value="@BookingModel.LocationId">
+                            <option selected>Choose a location</option>
+                            @foreach (var location in locations)
+                            {
+                                <option value="@location.Id">@($"{location.Name}")
+                                </option>
+                            }
+                        </InputSelect>
+                        @* // TODO: show address *@
+                    </div>
+                    <hr/>
+                    <div class="form-field">
                         <label class="control-label">Service* </label>
-                        <InputSelect class="form-control form-select" id="to-id" @bind-Value="@BookingModel.ServiceVariantId">
+                        <InputSelect class="form-control form-select" @bind-Value="@BookingModel.ServiceDetails">
                             <option selected>Choose a service to book</option>
                             @foreach (var catalogItem in catalogItems)
                             {
                                 @foreach (var variant in catalogItem.ItemData.Variations)
                                 {
-                                    <option value="@variant.Id">@($"{catalogItem.ItemData.Name} - {variant.ItemVariationData.Name}")
+                                    <option value="@($"{variant.Id}-{variant.Version}")">@($"{catalogItem.ItemData.Name} - {variant.ItemVariationData.Name}")
                                     </option>
                                 }
                             }
@@ -60,14 +76,15 @@
                                     <div class="container">
                                         <div class="row row-cols-2 row-cols-lg-5 g-2 g-lg-3">
 
-                                        @foreach (var elem in availability)
-                                        {
-                                            <div class="col">
-                                                <div class="@GetSlotClass(elem.StartAt)" @onclick="() => SelectSlot(elem.StartAt)">@($"{DateTime.Parse(elem.StartAt):HH:mm}")</div>
-                                            </div>
-                                        }
+                                            @foreach (var elem in availability)
+                                            {
+                                                <div class="col">
+                                                    <div class="@GetSlotClass(elem.StartAt)" @onclick="() => SelectSlot(elem.StartAt)">@($"{DateTime.Parse(elem.StartAt):HH:mm}")</div>
+                                                </div>
+                                            }
                                         </div>
                                     </div>
+                                    <hr/>
                                 }
                             }
                             else
@@ -93,17 +110,20 @@
     [Parameter]
     public string MerchantId { get; set; }
 
-    private IList<CatalogObject> catalogItems { get; set; }
-
-    public BookingCreateModel BookingModel { get; set; } = new BookingCreateModel();
-
+    private IList<CatalogObject> catalogItems;
+    private IList<Location> locations;
     private IEnumerable<IGrouping<string, Availability>> searchAvailabilities { get; set; }
+
+    public BookingCreateModel BookingModel = new BookingCreateModel();
 
     public bool SearchAvailabilityPerformed = false;
 
-        protected override void OnInitialized()
+    protected override void OnInitialized()
     {
-        catalogItems = CatalogService.GetCatalogItems(Guid.Parse(MerchantId));
+        var parsedMerchantId = Guid.Parse(MerchantId);
+        BookingModel.MerchantId = parsedMerchantId;
+        locations = LocationService.GetLocations(parsedMerchantId);
+        catalogItems = CatalogService.GetCatalogItems(parsedMerchantId);
     }
 
     public void SendCreateRequest()
@@ -112,6 +132,8 @@
         // overview cu datele alese
         // textarea cu note pentru customer
         // Book
+
+        var aa = BookingService.CreateAppointment(BookingModel);
     }
 
     public void SearchAvailability()

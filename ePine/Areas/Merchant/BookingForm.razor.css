@@ -22,6 +22,7 @@
     background-color: #2F8955;
     padding: 5px;
     text-align: center;
+    color: white;
 }
 
 .appointment-availability-slot-container:hover, .selected {

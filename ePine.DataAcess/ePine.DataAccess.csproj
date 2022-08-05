@@ -8,6 +8,8 @@
 
   <ItemGroup>
     <Folder Include="Entities\" />
+    <Folder Include="Repositories\Contracts\" />
+    <Folder Include="Repositories\Implementations\" />
   </ItemGroup>
 
   <ItemGroup>

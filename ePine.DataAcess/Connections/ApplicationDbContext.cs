@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using ePine.DataAccess.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace ePine.DataAccess.Connections;
@@ -10,4 +11,6 @@ public class ApplicationDbContext : IdentityDbContext
     {
         Database.Migrate();
     }
+
+    public DbSet<Merchant?> Merchants { get; set; }
 }

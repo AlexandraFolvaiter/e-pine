@@ -3,6 +3,8 @@ using ePine.Business.Contracts;
 using ePine.Business.Implementations;
 using ePine.Data;
 using ePine.DataAccess.Connections;
+using ePine.DataAccess.Repositories.Contracts;
+using ePine.DataAccess.Repositories.Implementations;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -23,7 +25,12 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 builder.Services.AddScoped<ICatalogService, CatalogService>();
 builder.Services.AddScoped<IBookingService, BookingService>();
+builder.Services.AddScoped<IMerchantService, MerchantService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
+
+builder.Services.AddTransient<IMerchantRepository, MerchantRepository>();
 builder.Services.AddScoped<SquareConnection>();
+builder.Services.AddScoped<ApplicationDbContext>();
 
 var app = builder.Build();
 

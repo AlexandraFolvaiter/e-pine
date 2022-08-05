@@ -1,22 +1,23 @@
 ﻿@page "/merchants/{Id}"
 @using ePine.Business.Contracts
-@using Humanizer
+@using ePine.Models
 @using Square.Models
-@using Merchant = ePine.Models.MerchantModel
+
 @inject ICatalogService CatalogService
+@inject IMerchantService MerchantService
 
 <PageTitle>MerchantModel details</PageTitle>
 
-@if (Merchant == null)
+@if (merchant == null)
 {
     <h2>Loading...</h2>
 }
 else
 {
-    <h1>@Merchant.Name</h1>
+    <h1>@merchant.Name</h1>
 
     <div>
-        @Merchant.Description
+        @merchant.Description
     </div>
 
     // TODO: show locations
@@ -35,7 +36,7 @@ else
                 <h3>
                     Services
                 </h3>
-                @foreach (var catalogItem in CatalogItems)
+                @foreach (var catalogItem in catalogItems)
                 {
                     <div class="accordion-item">
                         <h2 class="accordion-header" id="item-@catalogItem.Id">
@@ -75,20 +76,14 @@ else
     [Parameter]
     public string Id { get; set; }
 
-    public Merchant Merchant { get; set; }
+    private MerchantModel merchant { get; set; }
 
-    public IList<CatalogObject> CatalogItems;
+    private IList<CatalogObject> catalogItems;
 
     protected override void OnInitialized()
     {
-        Merchant = new Merchant
-        {
-            Id = Guid.NewGuid(),
-            Name = "BarberShop",
-            Description = "Lorem Ipsum is simply dummy text of the printing and typesetting industry."
-        };
-
-        CatalogItems = CatalogService.GetCatalogItems(Guid.Parse(Id));
+        merchant = MerchantService.GetMerchant(Guid.Parse(Id));
+        catalogItems = CatalogService.GetCatalogItems(Guid.Parse(Id));
     }
 
     public string FormatTime(long? seconds)
