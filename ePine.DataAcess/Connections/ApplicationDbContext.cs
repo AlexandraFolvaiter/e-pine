@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
-namespace ePine.Data;
+namespace ePine.DataAccess.Connections;
 
 public class ApplicationDbContext : IdentityDbContext
 {

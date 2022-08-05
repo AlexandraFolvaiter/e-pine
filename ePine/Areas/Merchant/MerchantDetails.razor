@@ -1,10 +1,11 @@
 ﻿@page "/merchants/{Id}"
 @using ePine.Business.Contracts
+@using Humanizer
 @using Square.Models
-@using Merchant = ePine.Models.Merchant
+@using Merchant = ePine.Models.MerchantModel
 @inject ICatalogService CatalogService
 
-<PageTitle>Merchant details</PageTitle>
+<PageTitle>MerchantModel details</PageTitle>
 
 @if (Merchant == null)
 {
@@ -18,7 +19,14 @@ else
         @Merchant.Description
     </div>
 
-    <button class="btn btn-primary">Create an appointment</button>
+    // TODO: show locations
+    // TODO: show working hours
+
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBooking">Book a service</button>
+
+    <div class="modal fade" id="createBooking" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <BookingForm merchantId="@Id"/>
+    </div>
 
 
     <div class="container">

@@ -1,0 +1,30 @@
+﻿.modal-content {
+    width: 80vw;
+}
+
+.modal-body {
+    height: 65vh;
+}
+
+.modal-dialog {
+    max-width: 80vw;
+    width: 80vw;
+}
+
+.search-availability-container {
+    max-height: 55vh;
+    overflow-y: auto;
+}
+
+.appointment-availability-slot-container {
+    border: 1px solid #1C5233;
+    border-radius: 5px;
+    background-color: #2F8955;
+    padding: 5px;
+    text-align: center;
+}
+
+.appointment-availability-slot-container:hover, .selected {
+    background-color: #1C5233;
+    cursor: pointer;
+}

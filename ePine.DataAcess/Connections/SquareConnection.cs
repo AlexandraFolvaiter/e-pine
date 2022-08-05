@@ -1,6 +1,6 @@
 ﻿using Square;
 
-namespace ePine.DataAcess.Connections;
+namespace ePine.DataAccess.Connections;
 
 public class SquareConnection
 {

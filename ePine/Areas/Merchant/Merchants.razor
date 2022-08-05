@@ -1,7 +1,7 @@
 ﻿@page "/merchants"
 @using ePine.Models
 
-<PageTitle>Merchants</PageTitle>
+<PageTitle>MerchantModels</PageTitle>
 
 <div class="management-list">
     <div class="input-group mb-3">
@@ -45,11 +45,11 @@
 
 @code {
 
-    public List<Merchant> merchants = new ();
+    public List<MerchantModel> merchants = new ();
 
     protected override void OnInitialized()
     {
-        var merchant = new Merchant
+        var merchant = new MerchantModel
         {
             Id = Guid.NewGuid(),
             Name = "BarberShop",

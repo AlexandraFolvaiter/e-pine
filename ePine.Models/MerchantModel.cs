@@ -1,6 +1,6 @@
 ﻿namespace ePine.Models;
 
-public class Merchant
+public class MerchantModel
 {
     public Guid Id { get; set; }
 
@@ -8,7 +8,7 @@ public class Merchant
 
     public string? Description { get; set; }
 
-    //type of business
+    // type of business
 
     // image(s)
 }

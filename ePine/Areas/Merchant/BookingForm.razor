@@ -1,0 +1,137 @@
+﻿@using ePine.Business.Contracts
+@using ePine.Models
+@using Square
+@using Square.Models
+@inject ICatalogService CatalogService
+@inject IBookingService BookingService
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title" id="staticBackdropLabel">Create a booking</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        
+        <EditForm Model="@BookingModel" OnValidSubmit="@SendCreateRequest" class="container">
+            <div class="modal-body row">
+                @* // TODO: choose location first => show services per location*@
+                
+                <div class="col col-4">
+                    <div class="form-field">
+                        <label class="control-label">Service* </label>
+                        <InputSelect class="form-control form-select" id="to-id" @bind-Value="@BookingModel.ServiceVariantId">
+                            <option selected>Choose a service to book</option>
+                            @foreach (var catalogItem in catalogItems)
+                            {
+                                @foreach (var variant in catalogItem.ItemData.Variations)
+                                {
+                                    <option value="@variant.Id">@($"{catalogItem.ItemData.Name} - {variant.ItemVariationData.Name}")
+                                    </option>
+                                }
+                            }
+                        </InputSelect>
+                    </div>
+                    <hr/>
+                    <div class="form-field">
+                        <b>When? Search availability for the time range</b>
+                        <div>
+                            StartDate: <InputDate class="form-control" DisplayName="StartDate" @bind-Value="@BookingModel.SearchAvailabilityStartDate"/>
+                            EndDate: <InputDate class="form-control" DisplayName="EndDate" @bind-Value="@BookingModel.SearchAvailabilityEndDate"/>
+                        </div>
+                        <button type="button" class="btn btn-outline-primary" onclick="@SearchAvailability">Check availability</button>
+
+                    </div>
+                </div>
+               
+                <div class="col col-8">
+                    <div class="form-field">
+                        <h3>Availability for booking</h3>
+                        <div class="search-availability-container">
+                            @if(searchAvailabilities != null && SearchAvailabilityPerformed)
+                            {
+                                if (!searchAvailabilities.Any())
+                                {
+                                    <p>No available slots in this time range. Please modify to change!</p>
+                                }
+                                @foreach (var availability in searchAvailabilities)
+                                {
+                                    <h3>@availability.Key</h3>
+
+                                    <div class="container">
+                                        <div class="row row-cols-2 row-cols-lg-5 g-2 g-lg-3">
+
+                                        @foreach (var elem in availability)
+                                        {
+                                            <div class="col">
+                                                <div class="@GetSlotClass(elem.StartAt)" @onclick="() => SelectSlot(elem.StartAt)">@($"{DateTime.Parse(elem.StartAt):HH:mm}")</div>
+                                            </div>
+                                        }
+                                        </div>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <p>Check availabilities!</p>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                @* // TODO: validations & disableing *@
+                <button type="submit" class="btn btn-primary">Book</button>
+            </div>
+        </EditForm>
+    </div>
+</div>
+@code {
+
+    [Parameter]
+    public string MerchantId { get; set; }
+
+    private IList<CatalogObject> catalogItems { get; set; }
+
+    public BookingCreateModel BookingModel { get; set; } = new BookingCreateModel();
+
+    private IEnumerable<IGrouping<string, Availability>> searchAvailabilities { get; set; }
+
+    public bool SearchAvailabilityPerformed = false;
+
+        protected override void OnInitialized()
+    {
+        catalogItems = CatalogService.GetCatalogItems(Guid.Parse(MerchantId));
+    }
+
+    public void SendCreateRequest()
+    {
+        // show pop-up
+        // overview cu datele alese
+        // textarea cu note pentru customer
+        // Book
+    }
+
+    public void SearchAvailability()
+    {
+        SearchAvailabilityPerformed = true;
+        searchAvailabilities = BookingService
+            .SearchAvailabilities(BookingModel)
+            .GroupBy(availability => availability.StartAt[..10]);
+    }
+
+    public void SelectSlot(string startAt)
+    {
+        BookingModel.SelectedStartAt = startAt;
+    }
+
+    public string GetSlotClass(string startAt)
+    {
+        var extraClass = startAt.Equals(BookingModel.SelectedStartAt)
+            ? " selected"
+            : string.Empty;
+        return $"p-3 appointment-availability-slot-container{extraClass}";
+    }
+}

@@ -1,5 +1,5 @@
 ﻿using ePine.Business.Contracts;
-using ePine.DataAcess.Connections;
+using ePine.DataAccess.Connections;
 using Square.Models;
 
 namespace ePine.Business.Implementations;

@@ -7,12 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ePine.DataAcess\ePine.DataAcess.csproj" />
+    <ProjectReference Include="..\ePine.DataAcess\ePine.DataAccess.csproj" />
     <ProjectReference Include="..\ePine.Models\ePine.Models.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Contracts\" />
     <Folder Include="Implementations\" />
   </ItemGroup>
 
