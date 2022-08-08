@@ -1,14 +1,7 @@
-﻿.modal-content {
-    width: 80vw;
-}
-
-.modal-body {
-    height: 65vh;
-}
-
-.modal-dialog {
+﻿.booking-dialog {
     max-width: 80vw;
     width: 80vw;
+    height: 65vh;
 }
 
 .search-availability-container {

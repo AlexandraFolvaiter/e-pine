@@ -1,0 +1,30 @@
+﻿@using ePine.Models
+<div class="appointment-container container">
+    <div class="row">
+        <div class="col col-8 text">@($"{AppointmentModel.DateAndTime} - {AppointmentModel.Name}")</div>
+        <div class="col col-4">
+            <button class="btn btn-primary" onclick="@SeeDetailsOfAppointment">Details</button>
+            <button class="btn btn-danger" onclick="@CancelAppointment">Cancel</button>
+        </div>
+    </div>
+
+</div>
+
+@code {
+    [Parameter]
+    public AppointmentModel AppointmentModel { get; set; }
+    [Parameter]
+    public EventCallback<Guid> OnDetailsAppointment { get; set; }
+    [Parameter]
+    public EventCallback<Guid> OnCancelAppointment { get; set; }
+
+    public void SeeDetailsOfAppointment()
+    {
+        OnDetailsAppointment.InvokeAsync(AppointmentModel.Id);
+    }
+
+    public void CancelAppointment()
+    {
+        OnCancelAppointment.InvokeAsync(AppointmentModel.Id);
+    }
+}

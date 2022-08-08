@@ -13,4 +13,5 @@ public class ApplicationDbContext : IdentityDbContext
     }
 
     public DbSet<Merchant?> Merchants { get; set; }
+    public DbSet<Appointment?> Appointments { get; set; }
 }

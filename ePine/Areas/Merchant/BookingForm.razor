@@ -6,9 +6,9 @@
 @inject ILocationService LocationService
 @inject ICatalogService CatalogService
 @inject IBookingService BookingService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
-
-<div class="modal-dialog">
+<div class="modal-dialog booking-dialog" >
     <div class="modal-content">
         <div class="modal-header">
             <h5 class="modal-title" id="staticBackdropLabel">Create a booking</h5>
@@ -44,6 +44,19 @@
                                     <option value="@($"{variant.Id}-{variant.Version}")">@($"{catalogItem.ItemData.Name} - {variant.ItemVariationData.Name}")
                                     </option>
                                 }
+                            }
+                        </InputSelect>
+                    </div>
+                    <hr/>
+                    <div class="form-field">
+                        <label class="control-label">Team member* </label>
+                        <InputSelect class="form-control form-select" @bind-Value="@BookingModel.TeamMemberId">
+                            <option selected>Choose a team member</option>
+                            @* // TODO: show team members by choosed service *@
+                            @foreach (var teamMember in teamMembers)
+                            {
+                                <option value="@teamMember.TeamMemberId">@($"{teamMember.DisplayName}")
+                                </option>
                             }
                         </InputSelect>
                     </div>
@@ -100,7 +113,32 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 @* // TODO: validations & disableing *@
-                <button type="submit" class="btn btn-primary">Book</button>
+                @* <button type="submit" class="btn btn-primary">Book</button> *@
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#overview-modal">See appointment details</button>
+                
+                <div class="modal fade" id="overview-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-5" aria-hidden="true">
+                    <div class="modal-dialog  modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="exampleModalLabel">Appointment overview</h5>
+                            </div>
+                            <div class="modal-body">
+                                <p>Location: @locations.FirstOrDefault(l => l.Id.Equals(BookingModel.LocationId))?.Name</p>
+                                <p>Service: @GetServiceDetails()</p>
+                                <p>Team member: @teamMembers.FirstOrDefault(tm => tm.TeamMemberId.Equals(BookingModel.TeamMemberId))?.DisplayName</p>
+                                <p>Starts at: @($"{BookingModel.SelectedStartAt}")</p>
+                                <p>
+                                    Add some extra details
+                                    <InputTextArea @bind-Value="@BookingModel.CustomerNote"></InputTextArea>
+                                </p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Book</button> 
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </EditForm>
     </div>
@@ -109,9 +147,12 @@
 
     [Parameter]
     public string MerchantId { get; set; }
+    [Parameter]
+    public EventCallback<int> OnBookingCompleted { get; set; }
 
     private IList<CatalogObject> catalogItems;
     private IList<Location> locations;
+    private IList<TeamMemberBookingProfile> teamMembers;
     private IEnumerable<IGrouping<string, Availability>> searchAvailabilities { get; set; }
 
     public BookingCreateModel BookingModel = new BookingCreateModel();
@@ -124,16 +165,17 @@
         BookingModel.MerchantId = parsedMerchantId;
         locations = LocationService.GetLocations(parsedMerchantId);
         catalogItems = CatalogService.GetCatalogItems(parsedMerchantId);
+        teamMembers = BookingService.GetTeamMembers(parsedMerchantId);
     }
 
-    public void SendCreateRequest()
+    public async Task SendCreateRequest()
     {
-        // show pop-up
-        // overview cu datele alese
-        // textarea cu note pentru customer
-        // Book
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var claims = authenticationState.User.Claims;
+        var userId = claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
 
-        var aa = BookingService.CreateAppointment(BookingModel);
+        BookingService.CreateAppointment(Guid.Parse(userId), BookingModel);
+        OnBookingCompleted.InvokeAsync();
     }
 
     public void SearchAvailability()
@@ -155,5 +197,20 @@
             ? " selected"
             : string.Empty;
         return $"p-3 appointment-availability-slot-container{extraClass}";
+    }
+
+    public string GetServiceDetails()
+    {
+        var service = catalogItems
+            .FirstOrDefault(s => s.Id.Equals(BookingModel.ServiceVariantId))?
+            .ItemData;
+
+        // TODO: add multiple details: duration, price
+        return $"{service?.Name}";
+    }
+
+
+    private void CloseModal()
+    {
     }
 }

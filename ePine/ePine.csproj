@@ -8,13 +8,16 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Areas\Merchant\AppointmentListElem.razor.css" />
     <None Remove="Areas\Merchant\BookingForm.razor.css" />
     <None Remove="Areas\Merchant\FirstPage.razor.css" />
     <None Remove="Areas\Merchant\MerchantDetails.razor.css" />
+    <None Remove="Areas\Shared\Appointment.razor.css" />
     <None Remove="Pages\FirstPage.razor.css" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Areas\Merchant\AppointmentListElem.razor.css" />
     <Content Include="Areas\Merchant\BookingForm.razor.css" />
     <Content Include="Areas\Merchant\MerchantDetails.razor.css" />
     <Content Include="Pages\FirstPage.razor.css" />
@@ -34,6 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Areas\Shared\" />
     <Folder Include="Data\" />
     <Folder Include="wwwroot\images\" />
   </ItemGroup>

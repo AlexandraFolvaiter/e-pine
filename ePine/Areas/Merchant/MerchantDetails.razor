@@ -3,8 +3,12 @@
 @using ePine.Models
 @using Square.Models
 
+
 @inject ICatalogService CatalogService
 @inject IMerchantService MerchantService
+@inject ILocationService LocationService
+@inject IBookingService BookingService
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>MerchantModel details</PageTitle>
 
@@ -26,7 +30,7 @@ else
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBooking">Book a service</button>
 
     <div class="modal fade" id="createBooking" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-        <BookingForm merchantId="@Id"/>
+        <BookingForm merchantId="@Id" OnBookingCompleted="@SearchAppointments"/>
     </div>
 
 
@@ -52,9 +56,10 @@ else
 
                                 @foreach (var variant in catalogItem.ItemData.Variations)
                                 {
-                                    <div>
+                                    <span>
                                         @($"{variant.ItemVariationData.Name} - Duration: {FormatTime(variant.ItemVariationData.ServiceDuration)} - Price: {FormatPrice(variant.ItemVariationData)}")
-                                    </div>
+                                    </span>
+                                    <button class="btn btn-outline-primary">Book</button>
                                     <hr/>
                                 }
                             </div>
@@ -66,6 +71,24 @@ else
 
                 <h3>Meet the team</h3>
                 <h4>Loading...</h4>
+                
+                <h3>Appointments</h3>
+                @if (appointments.Any())
+                {
+                    <div class="">
+                        @foreach (var appointment in appointments)
+                        {
+                            <AppointmentListElem
+                                AppointmentModel="appointment"
+                                OnDetailsAppointment="ShowAppointmentDetails"
+                                OnCancelAppointment="CancelAppointment"/>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <h4>No appointments yet.</h4>
+                }
             </div>
         </div>
     </div>
@@ -79,11 +102,20 @@ else
     private MerchantModel merchant { get; set; }
 
     private IList<CatalogObject> catalogItems;
+    private IList<AppointmentModel> appointments;
 
-    protected override void OnInitialized()
+    private Guid userId;
+
+    protected override async Task OnInitializedAsync()
     {
-        merchant = MerchantService.GetMerchant(Guid.Parse(Id));
-        catalogItems = CatalogService.GetCatalogItems(Guid.Parse(Id));
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var claims = authenticationState.User.Claims;
+        userId = Guid.Parse(claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value);
+
+        var parsedMerchantId = Guid.Parse(Id);
+        merchant = MerchantService.GetMerchant(parsedMerchantId);
+        catalogItems = CatalogService.GetCatalogItems(parsedMerchantId);
+        appointments = BookingService.GetGeneralAppointmentsByMerchantId(userId, parsedMerchantId);
     }
 
     public string FormatTime(long? seconds)
@@ -99,4 +131,19 @@ else
             : $"{variation.PriceMoney.Amount/100}.{variation.PriceMoney.Amount%100} {variation.PriceMoney.Currency}";
     }
 
+    private void SearchAppointments()
+    {
+        appointments = BookingService.GetGeneralAppointmentsByMerchantId(userId, Guid.Parse(Id));
+    }
+
+    private void ShowAppointmentDetails(Guid id)
+    {
+
+    }
+
+    private void CancelAppointment(Guid id)
+    {
+        BookingService.CancelAppointment(id);
+        SearchAppointments();
+    }
 }

@@ -10,6 +10,7 @@ public class BookingCreateModel
     public string? SelectedStartAt { get; set; }
 
     public string? LocationId { get; set; }
+    public string? TeamMemberId { get; set; }
     public string? CustomerNote { get; set; }
 
     public DateTime SearchAvailabilityStartDate { get; set; }
@@ -17,7 +18,7 @@ public class BookingCreateModel
 
     public BookingCreateModel()
     {
-        SearchAvailabilityStartDate = DateTime.Now;
-        SearchAvailabilityEndDate = DateTime.Now.AddDays(3);
+        SearchAvailabilityStartDate = DateTime.Today;
+        SearchAvailabilityEndDate = DateTime.Today.AddDays(3);
     }
 }

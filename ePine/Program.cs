@@ -29,6 +29,7 @@ builder.Services.AddScoped<IMerchantService, MerchantService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 
 builder.Services.AddTransient<IMerchantRepository, MerchantRepository>();
+builder.Services.AddTransient<IAppointmentRepository, AppointmentRepository>();
 builder.Services.AddScoped<SquareConnection>();
 builder.Services.AddScoped<ApplicationDbContext>();
 
