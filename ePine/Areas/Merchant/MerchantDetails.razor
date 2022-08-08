@@ -3,7 +3,6 @@
 @using ePine.Models
 @using Square.Models
 
-
 @inject ICatalogService CatalogService
 @inject IMerchantService MerchantService
 @inject ILocationService LocationService
@@ -23,49 +22,62 @@ else
     <div>
         @merchant.Description
     </div>
-
-    // TODO: show locations
-    // TODO: show working hours
-
+        
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBooking">Book a service</button>
 
     <div class="modal fade" id="createBooking" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <BookingForm merchantId="@Id" OnBookingCompleted="@SearchAppointments"/>
     </div>
 
-
     <div class="container">
         <div class="row">
-            <div class="col col-6 accordion">
-                <h3>
-                    Services
-                </h3>
-                @foreach (var catalogItem in catalogItems)
-                {
-                    <div class="accordion-item">
-                        <h2 class="accordion-header" id="item-@catalogItem.Id">
-                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@catalogItem.Id" aria-expanded="false" aria-controls="@catalogItem.Id">
-                                @catalogItem.ItemData.Name
-                            </button>
-                        </h2>
-                        <div id="@catalogItem.Id" class="accordion-collapse collapse">
-                            <div class="accordion-body">
-                                <p>
-                                    @catalogItem.ItemData.Description
-                                </p>
-
-                                @foreach (var variant in catalogItem.ItemData.Variations)
-                                {
-                                    <span>
-                                        @($"{variant.ItemVariationData.Name} - Duration: {FormatTime(variant.ItemVariationData.ServiceDuration)} - Price: {FormatPrice(variant.ItemVariationData)}")
-                                    </span>
-                                    <button class="btn btn-outline-primary">Book</button>
-                                    <hr/>
-                                }
+            <div class="col col-6">
+                <div>
+                    <h3>Locations</h3>
+                    @foreach (var location in locations)
+                    {
+                        <div class="address-container">
+                            @location.Name
+                            <div class="location-address-container">
+                                Address: @($"{location.Address.AddressLine1}, {location.Address.Locality}, {location.Address.Country}, {location.Address.PostalCode}")
                             </div>
-                        </div >
-                    </div>
-                }
+                        </div>
+                    }
+                </div>
+                <hr/>
+            
+                <div class="accordion">
+                    <h3>
+                        Services
+                    </h3>
+                    @foreach (var catalogItem in catalogItems)
+                    {
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="item-@catalogItem.Id">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@catalogItem.Id" aria-expanded="false" aria-controls="@catalogItem.Id">
+                                    @catalogItem.ItemData.Name
+                                </button>
+                            </h2>
+                            <div id="@catalogItem.Id" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <p>
+                                        @catalogItem.ItemData.Description
+                                    </p>
+
+                                    @foreach (var variant in catalogItem.ItemData.Variations)
+                                    {
+                                        <span>
+                                            @($"{variant.ItemVariationData.Name} - Duration: {FormatTime(variant.ItemVariationData.ServiceDuration)} - Price: {FormatPrice(variant.ItemVariationData)}")
+                                        </span>
+                                        <button class="btn btn-outline-primary">Book</button>
+                                        <hr/>
+                                    }
+                                </div>
+                            </div >
+                        </div>
+                    }
+                </div>
+                
             </div>
             <div class="col col-6">
 
@@ -94,6 +106,13 @@ else
     </div>
 }
 
+<div class="modal fade" id="details-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <AppointmentDetailsModal Appointment="appointment"></AppointmentDetailsModal>
+</div>
+
+
+
+
 @code {
 
     [Parameter]
@@ -103,8 +122,10 @@ else
 
     private IList<CatalogObject> catalogItems;
     private IList<AppointmentModel> appointments;
+    private IList<Location> locations;
 
     private Guid userId;
+    private Booking appointment;
 
     protected override async Task OnInitializedAsync()
     {
@@ -115,6 +136,7 @@ else
         var parsedMerchantId = Guid.Parse(Id);
         merchant = MerchantService.GetMerchant(parsedMerchantId);
         catalogItems = CatalogService.GetCatalogItems(parsedMerchantId);
+        locations = LocationService.GetLocations(parsedMerchantId);
         appointments = BookingService.GetGeneralAppointmentsByMerchantId(userId, parsedMerchantId);
     }
 
@@ -138,7 +160,7 @@ else
 
     private void ShowAppointmentDetails(Guid id)
     {
-
+        appointment = BookingService.GetBooking(id);
     }
 
     private void CancelAppointment(Guid id)

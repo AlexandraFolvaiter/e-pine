@@ -185,8 +185,15 @@ public class BookingService : BaseService, IBookingService
             .ToList();
     }
 
-    public AppointmentModel GetAppointment(Guid appointmentId)
+    public Booking GetBooking(Guid appointmentId)
     {
-        throw new NotImplementedException();
+        var localAppointment = _appointmentRepository.GetAppointment(appointmentId);
+
+        var merchant = MerchantRepository.GetById(localAppointment.MerchantId);
+
+        var client = _squareConnection.GetSquareClient(merchant?.AccessToken);
+        var result = client.BookingsApi.RetrieveBooking(localAppointment.AppointmentId);
+
+        return result.Booking;
     }
 }

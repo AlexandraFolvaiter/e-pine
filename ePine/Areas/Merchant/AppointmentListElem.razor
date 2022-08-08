@@ -3,12 +3,30 @@
     <div class="row">
         <div class="col col-8 text">@($"{AppointmentModel.DateAndTime} - {AppointmentModel.Name}")</div>
         <div class="col col-4">
-            <button class="btn btn-primary" onclick="@SeeDetailsOfAppointment">Details</button>
-            <button class="btn btn-danger" onclick="@CancelAppointment">Cancel</button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#details-modal" onclick="@SeeDetailsOfAppointment">Details</button>
+            <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancel-confirmation-modal">Cancel</button>
         </div>
     </div>
-
 </div>
+
+<div class="modal fade" id="cancel-confirmation-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="staticBackdropLabel">Cancel confirmation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                Are you sure you want to cancel this appointment?
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No</button>
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal" onclick="@CancelAppointment">Yes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 @code {
     [Parameter]
