@@ -90,7 +90,7 @@ else
                     <div class="">
                         @foreach (var appointment in appointments)
                         {
-                            <AppointmentListElem
+                            <ePine.Areas.Shared.AppointmentListElem
                                 AppointmentModel="appointment"
                                 OnDetailsAppointment="ShowAppointmentDetails"
                                 OnCancelAppointment="CancelAppointment"/>
@@ -107,7 +107,7 @@ else
 }
 
 <div class="modal fade" id="details-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <AppointmentDetailsModal Appointment="appointment"></AppointmentDetailsModal>
+    <ePine.Areas.Shared.AppointmentDetailsModal Appointment="appointment"/>
 </div>
 
 
