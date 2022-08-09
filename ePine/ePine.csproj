@@ -8,16 +8,20 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Areas\Dashboard\Dashboard.razor.css" />
     <None Remove="Areas\Merchant\BookingForm.razor.css" />
     <None Remove="Areas\Merchant\FirstPage.razor.css" />
     <None Remove="Areas\Merchant\MerchantDetails.razor.css" />
     <None Remove="Areas\Shared\Appointment.razor.css" />
+    <None Remove="Areas\Shared\AppointmentDetailsModal.razor.css" />
     <None Remove="Pages\FirstPage.razor.css" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Areas\Dashboard\Dashboard.razor.css" />
     <Content Include="Areas\Merchant\BookingForm.razor.css" />
     <Content Include="Areas\Merchant\MerchantDetails.razor.css" />
+    <Content Include="Areas\Shared\AppointmentDetailsModal.razor.css" />
     <Content Include="Pages\FirstPage.razor.css" />
   </ItemGroup>
 

@@ -3,6 +3,8 @@
 @using Square
 @using Square.Models
 
+@attribute [Authorize]
+
 @inject ILocationService LocationService
 @inject ICatalogService CatalogService
 @inject IBookingService BookingService
@@ -41,7 +43,8 @@
                             {
                                 @foreach (var variant in catalogItem.ItemData.Variations)
                                 {
-                                    <option value="@($"{variant.Id}-{variant.Version}")">@($"{catalogItem.ItemData.Name} - {variant.ItemVariationData.Name}")
+                                    <option value="@($"{variant.Id}&&{variant.Version}&&{catalogItem.ItemData.Name} - {variant.ItemVariationData.Name}")">
+                                        @($"{catalogItem.ItemData.Name} - {variant.ItemVariationData.Name}")
                                     </option>
                                 }
                             }
@@ -113,7 +116,6 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 @* // TODO: validations & disableing *@
-                @* <button type="submit" class="btn btn-primary">Book</button> *@
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#overview-modal">See appointment details</button>
                 
                 <div class="modal fade" id="overview-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-5" aria-hidden="true">
@@ -122,15 +124,27 @@
                             <div class="modal-header">
                                 <h5 class="modal-title" id="exampleModalLabel">Appointment overview</h5>
                             </div>
-                            <div class="modal-body">
-                                <p>Location: @locations.FirstOrDefault(l => l.Id.Equals(BookingModel.LocationId))?.Name</p>
-                                <p>Service: @GetServiceDetails()</p>
-                                <p>Team member: @teamMembers.FirstOrDefault(tm => tm.TeamMemberId.Equals(BookingModel.TeamMemberId))?.DisplayName</p>
-                                <p>Starts at: @($"{BookingModel.SelectedStartAt}")</p>
-                                <p>
-                                    Add some extra details
-                                    <InputTextArea @bind-Value="@BookingModel.CustomerNote"></InputTextArea>
-                                </p>
+                            <div class="modal-body container">
+                                <div class="row">
+                                    <div class="col col-5">Location</div>
+                                    <div class="col col-7">@locations.FirstOrDefault(l => l.Id.Equals(BookingModel.LocationId))?.Name <hr/></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col col-5">Service</div>
+                                    <div class="col col-7">@BookingModel.ServiceName <hr/></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col col-5">TeamMember</div>
+                                    <div class="col col-7">@teamMembers.FirstOrDefault(tm => tm.TeamMemberId.Equals(BookingModel.TeamMemberId))?.DisplayName <hr/></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col col-5">Starts at:</div>
+                                    <div class="col col-7">@($"{BookingModel.SelectedStartAt}")<hr/></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col col-5">Add extra details</div>
+                                    <div class="col col-7"> <InputTextArea class="form-control" @bind-Value="@BookingModel.CustomerNote"></InputTextArea></div>
+                                </div>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -197,20 +211,5 @@
             ? " selected"
             : string.Empty;
         return $"p-3 appointment-availability-slot-container{extraClass}";
-    }
-
-    public string GetServiceDetails()
-    {
-        var service = catalogItems
-            .FirstOrDefault(s => s.Id.Equals(BookingModel.ServiceVariantId))?
-            .ItemData;
-
-        // TODO: add multiple details: duration, price
-        return $"{service?.Name}";
-    }
-
-
-    private void CloseModal()
-    {
     }
 }

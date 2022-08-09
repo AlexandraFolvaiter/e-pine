@@ -88,11 +88,6 @@ public class BookingService : BaseService, IBookingService
     {
         var merchant = MerchantRepository.GetById(model.MerchantId);
 
-        if (merchant == null)
-        {
-            // TODO: show error
-        }
-
         var appointmentSegment = new AppointmentSegment.Builder(teamMemberId: model.TeamMemberId)
             .ServiceVariationId(model.ServiceVariantId)
             .ServiceVariationVersion(long.Parse(model.ServiceVariantVersion))
@@ -123,7 +118,7 @@ public class BookingService : BaseService, IBookingService
                 MerchantId = merchant.Id,
                 AppointmentId = result.Id,
                 DateAndTime = DateTime.Parse(result.StartAt),
-                Name = "ceva??/"
+                Name = model.ServiceName
             };
 
             _appointmentRepository.AddAppointment(appointment);
@@ -163,13 +158,16 @@ public class BookingService : BaseService, IBookingService
             DateAndTime = a.DateAndTime,
             UserId = a.UserId,
             Name = a.Name
-        }).ToList();
+        })
+            .OrderBy(a => a.DateAndTime)
+            .ToList();
     }
 
     public IList<AppointmentModel> GetGeneralAppointmentsByMerchantId(Guid userId, Guid merchantId)
     {
         var list = _appointmentRepository
             .GetAll(userId)
+            .Where(a => a.DateAndTime > DateTime.Now)
             .Where(a => a.MerchantId == merchantId);
 
         return list.Select(a => new AppointmentModel
@@ -185,15 +183,33 @@ public class BookingService : BaseService, IBookingService
             .ToList();
     }
 
-    public Booking GetBooking(Guid appointmentId)
+    public AppointmentDetails GetBooking(Guid appointmentId)
     {
         var localAppointment = _appointmentRepository.GetAppointment(appointmentId);
 
         var merchant = MerchantRepository.GetById(localAppointment.MerchantId);
 
         var client = _squareConnection.GetSquareClient(merchant?.AccessToken);
-        var result = client.BookingsApi.RetrieveBooking(localAppointment.AppointmentId);
+        var booking = client.BookingsApi.RetrieveBooking(localAppointment.AppointmentId).Booking;
+        var location = client.LocationsApi.RetrieveLocation(booking.LocationId).Location;
+        var teamMember = client.BookingsApi.RetrieveTeamMemberBookingProfile(booking.AppointmentSegments.FirstOrDefault().TeamMemberId).TeamMemberBookingProfile;
 
-        return result.Booking;
+        var appointmentDetails = new AppointmentDetails
+        {
+            Booking = booking,
+            AppointmentModel = new AppointmentModel
+            {
+                Id = localAppointment.Id,
+                MerchantId = localAppointment.MerchantId,
+                AppointmentId = localAppointment.AppointmentId,
+                DateAndTime = localAppointment.DateAndTime,
+                UserId = localAppointment.UserId,
+                Name = localAppointment.Name
+            },
+            MerchanName = merchant.Name,
+            Location = $"{location.Name} - {location.Address.AddressLine1}, {location.Address.Locality}, {location.Address.Country}, {location.Address.PostalCode}",
+            TeamMember = teamMember.DisplayName
+        };
+        return appointmentDetails;
     }
 }

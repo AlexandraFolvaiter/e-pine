@@ -5,8 +5,9 @@ public class BookingCreateModel
     public Guid MerchantId { get; set; }
 
     public string? ServiceDetails { get; set; }
-    public string? ServiceVariantId => ServiceDetails?.Split("-").First();
-    public string? ServiceVariantVersion => ServiceDetails?.Split("-").Last();
+    public string? ServiceVariantId => ServiceDetails?.Split("&&")[0];
+    public string? ServiceVariantVersion => ServiceDetails?.Split("&&")[1];
+    public string? ServiceName => ServiceDetails?.Split("&&")[2];
     public string? SelectedStartAt { get; set; }
 
     public string? LocationId { get; set; }

@@ -1,0 +1,6 @@
+﻿.row {
+    min-height: 50px;
+}
+.col:nth-child(odd) {
+    font-weight: bold;
+}

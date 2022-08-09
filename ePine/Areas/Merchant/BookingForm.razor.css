@@ -22,3 +22,7 @@
     background-color: #1C5233;
     cursor: pointer;
 }
+
+.row {
+    min-height: 50px
+}

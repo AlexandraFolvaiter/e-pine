@@ -11,5 +11,5 @@ public interface IBookingService
     void CancelAppointment(Guid appointmentId);
     IList<AppointmentModel> GetGeneralAppointments(Guid userId);
     IList<AppointmentModel> GetGeneralAppointmentsByMerchantId(Guid userId, Guid merchantId);
-    Booking GetBooking(Guid appointmentId);
+    AppointmentDetails GetBooking(Guid appointmentId);
 }

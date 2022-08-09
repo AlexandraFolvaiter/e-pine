@@ -3,6 +3,8 @@
 @using ePine.Models
 @using Square.Models
 
+@attribute [Authorize]
+
 @inject ICatalogService CatalogService
 @inject IMerchantService MerchantService
 @inject ILocationService LocationService
@@ -84,7 +86,7 @@ else
                 <h3>Meet the team</h3>
                 <h4>Loading...</h4>
                 
-                <h3>Appointments</h3>
+                <h3>Upcoming Appointments</h3>
                 @if (appointments.Any())
                 {
                     <div class="">
@@ -107,11 +109,8 @@ else
 }
 
 <div class="modal fade" id="details-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-    <ePine.Areas.Shared.AppointmentDetailsModal Appointment="appointment"/>
+    <ePine.Areas.Shared.AppointmentDetailsModal AppointmentModel="appointment"/>
 </div>
-
-
-
 
 @code {
 
@@ -125,7 +124,7 @@ else
     private IList<Location> locations;
 
     private Guid userId;
-    private Booking appointment;
+    private AppointmentDetails appointment;
 
     protected override async Task OnInitializedAsync()
     {
@@ -160,6 +159,7 @@ else
 
     private void ShowAppointmentDetails(Guid id)
     {
+        appointment = null;
         appointment = BookingService.GetBooking(id);
     }
 
