@@ -1,7 +1,6 @@
 ﻿using ePine.Business.Contracts;
 using ePine.DataAccess.Connections;
 using ePine.DataAccess.Repositories.Contracts;
-using ePine.DataAccess.Repositories.Implementations;
 using Square.Models;
 
 namespace ePine.Business.Implementations;

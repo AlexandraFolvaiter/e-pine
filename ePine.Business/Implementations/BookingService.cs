@@ -4,7 +4,8 @@ using ePine.DataAccess.Connections;
 using ePine.DataAccess.Entities;
 using ePine.DataAccess.Repositories.Contracts;
 using ePine.Models;
-using Square.Exceptions;
+using Microsoft.AspNetCore.Identity;
+using Square;
 using Square.Models;
 
 namespace ePine.Business.Implementations;
@@ -13,14 +14,17 @@ public class BookingService : BaseService, IBookingService
 {
     private readonly SquareConnection _squareConnection;
     private readonly IAppointmentRepository _appointmentRepository;
+    private readonly UserManager<IdentityUser> _userManager;
 
     public BookingService(
         IMerchantRepository merchantRepository,
         IAppointmentRepository appointmentRepository,
-        SquareConnection squareConnection)
+        SquareConnection squareConnection,
+        UserManager<IdentityUser> userManager)
         : base(merchantRepository)
     {
         _squareConnection = squareConnection;
+        _userManager = userManager;
         _appointmentRepository = appointmentRepository;
     }
 
@@ -30,7 +34,6 @@ public class BookingService : BaseService, IBookingService
 
         var client = _squareConnection.GetSquareClient(merchant?.AccessToken);
 
-        // var teamMembers = client.BookingsApi.RetrieveTeamMemberBookingProfile("TMhWT25VK-W_mso_");
         var teamMembers = client.TeamApi.SearchTeamMembers(new SearchTeamMembersRequest()).TeamMembers;
         return teamMembers;
     }
@@ -71,7 +74,7 @@ public class BookingService : BaseService, IBookingService
     public void CreateAppointment(Guid userId, BookingCreateModel model)
     {
         var merchant = MerchantRepository.GetById(model.MerchantId);
-
+        var client = _squareConnection.GetSquareClient(merchant.AccessToken);
         var appointmentSegment = new AppointmentSegment.Builder(model.TeamMemberId)
             .ServiceVariationId(model.ServiceVariantId)
             .ServiceVariationVersion(long.Parse(model.ServiceVariantVersion))
@@ -79,18 +82,17 @@ public class BookingService : BaseService, IBookingService
 
         var appointmentSegments = new List<AppointmentSegment> { appointmentSegment };
 
-        // TODO: customerId
         var booking = new Booking.Builder()
             .StartAt(model.SelectedStartAt)
             .LocationId(model.LocationId)
-            .CustomerId(GetCustomerId())
+            .CustomerId(GetCustomerId(userId, client))
             .CustomerNote(model.CustomerNote)
             .AppointmentSegments(appointmentSegments)
             .Build();
 
         var body = new CreateBookingRequest.Builder( booking)
             .Build();
-        var client = _squareConnection.GetSquareClient(merchant.AccessToken);
+
             var result =  client.BookingsApi.CreateBooking(body).Booking;
             var appointment = new Appointment
             {
@@ -197,8 +199,39 @@ public class BookingService : BaseService, IBookingService
         return appointmentDetails;
     }
 
-    private string GetCustomerId()
+    private string? GetCustomerId(Guid userId, SquareClient client)
     {
-        return "VDRFA0THA5681A63CVTVXCAR58";
+        var user = _userManager.FindByIdAsync(userId.ToString()).Result;
+
+        var emailAddress = new CustomerTextFilter.Builder()
+            .Exact(user.Email)
+            .Build();
+
+        var filter = new CustomerFilter.Builder()
+            .EmailAddress(emailAddress)
+            .Build();
+
+        var query = new CustomerQuery.Builder()
+            .Filter(filter)
+            .Build();
+
+        var body = new SearchCustomersRequest.Builder()
+            .Query(query)
+            .Build();
+
+        var result = client.CustomersApi.SearchCustomers(body).Customers;
+
+        if (result!= null && result.Any())
+        {
+            return result.FirstOrDefault()?.Id;
+        }
+
+        var createBody = new CreateCustomerRequest.Builder()
+            .GivenName(user.UserName)
+            .EmailAddress(user.Email)
+            .Build();
+        var createResult = client.CustomersApi.CreateCustomer(createBody).Customer;
+
+        return createResult.Id;
     }
 }

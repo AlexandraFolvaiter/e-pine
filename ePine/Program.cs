@@ -1,7 +1,6 @@
 using ePine.Areas.Identity;
 using ePine.Business.Contracts;
 using ePine.Business.Implementations;
-using ePine.Data;
 using ePine.DataAccess.Connections;
 using ePine.DataAccess.Repositories.Contracts;
 using ePine.DataAccess.Repositories.Implementations;
