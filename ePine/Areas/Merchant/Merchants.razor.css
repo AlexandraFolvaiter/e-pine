@@ -1,0 +1,9 @@
+﻿.card-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.card {
+    height: 275px;
+}

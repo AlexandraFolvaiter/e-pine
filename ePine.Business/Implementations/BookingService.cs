@@ -24,34 +24,20 @@ public class BookingService : BaseService, IBookingService
         _appointmentRepository = appointmentRepository;
     }
 
-    public IList<TeamMemberBookingProfile> GetTeamMembers(Guid merchantId)
+    public IList<TeamMember> GetTeamMembers(Guid merchantId)
     {
         var merchant = MerchantRepository.GetById(merchantId);
 
-        if (merchant == null)
-        {
-            // TODO: show error
-        }
+        var client = _squareConnection.GetSquareClient(merchant?.AccessToken);
 
-        var client = _squareConnection.GetSquareClient(merchant.AccessToken);
-
-
-        var teamMembers = client.BookingsApi.RetrieveTeamMemberBookingProfile("TMhWT25VK-W_mso_");
-
-        return new List<TeamMemberBookingProfile>
-        {
-            teamMembers.TeamMemberBookingProfile
-        };
+        // var teamMembers = client.BookingsApi.RetrieveTeamMemberBookingProfile("TMhWT25VK-W_mso_");
+        var teamMembers = client.TeamApi.SearchTeamMembers(new SearchTeamMembersRequest()).TeamMembers;
+        return teamMembers;
     }
 
     public IList<Availability> SearchAvailabilities(BookingCreateModel model)
     {
         var merchant = MerchantRepository.GetById(model.MerchantId);
-
-        if (merchant == null)
-        {
-            // TODO: show error
-        }
 
         var startAtRange = new TimeRange.Builder()
             .StartAt(model.SearchAvailabilityStartDate.ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", DateTimeFormatInfo.InvariantInfo))
@@ -59,25 +45,23 @@ public class BookingService : BaseService, IBookingService
             .Build();
 
         var segmentFilter = new SegmentFilter
-                .Builder(serviceVariationId: model.ServiceVariantId)
+                .Builder(model.ServiceVariantId)
             .Build();
 
-        var segmentFilters = new List<SegmentFilter>();
-        segmentFilters.Add(segmentFilter);
+        var segmentFilters = new List<SegmentFilter> { segmentFilter };
 
-        var filter = new SearchAvailabilityFilter.Builder(startAtRange: startAtRange)
-            // TODO: change location
-            .LocationId("LTBAH8P3MGT9B")
+        var filter = new SearchAvailabilityFilter.Builder(startAtRange)
+            .LocationId(model.LocationId)
             .SegmentFilters(segmentFilters)
             .Build();
 
-        var query = new SearchAvailabilityQuery.Builder(filter: filter)
+        var query = new SearchAvailabilityQuery.Builder(filter)
             .Build();
 
-        var body = new SearchAvailabilityRequest.Builder(query: query)
+        var body = new SearchAvailabilityRequest.Builder(query)
             .Build();
 
-        var client = _squareConnection.GetSquareClient(merchant.AccessToken);
+        var client = _squareConnection.GetSquareClient(merchant?.AccessToken);
 
         var availabilities = client.BookingsApi.SearchAvailability(body).Availabilities;
 
@@ -88,29 +72,25 @@ public class BookingService : BaseService, IBookingService
     {
         var merchant = MerchantRepository.GetById(model.MerchantId);
 
-        var appointmentSegment = new AppointmentSegment.Builder(teamMemberId: model.TeamMemberId)
+        var appointmentSegment = new AppointmentSegment.Builder(model.TeamMemberId)
             .ServiceVariationId(model.ServiceVariantId)
             .ServiceVariationVersion(long.Parse(model.ServiceVariantVersion))
             .Build();
 
-        var appointmentSegments = new List<AppointmentSegment>();
-        appointmentSegments.Add(appointmentSegment);
+        var appointmentSegments = new List<AppointmentSegment> { appointmentSegment };
 
         // TODO: customerId
         var booking = new Booking.Builder()
             .StartAt(model.SelectedStartAt)
             .LocationId(model.LocationId)
-            .CustomerId("VDRFA0THA5681A63CVTVXCAR58")
+            .CustomerId(GetCustomerId())
             .CustomerNote(model.CustomerNote)
             .AppointmentSegments(appointmentSegments)
             .Build();
 
-        var body = new CreateBookingRequest.Builder(booking: booking)
+        var body = new CreateBookingRequest.Builder( booking)
             .Build();
-
-        try
-        {
-            var client = _squareConnection.GetSquareClient(merchant.AccessToken);
+        var client = _squareConnection.GetSquareClient(merchant.AccessToken);
             var result =  client.BookingsApi.CreateBooking(body).Booking;
             var appointment = new Appointment
             {
@@ -121,14 +101,7 @@ public class BookingService : BaseService, IBookingService
                 Name = model.ServiceName
             };
 
-            _appointmentRepository.AddAppointment(appointment);
-        }
-        catch (ApiException e)
-        {
-            Console.WriteLine("Failed to make the request");
-            Console.WriteLine($"Response Code: {e.ResponseCode}");
-            Console.WriteLine($"Exception: {e.Message}");
-        }
+        _appointmentRepository.AddAppointment(appointment);
     }
 
     public void CancelAppointment(Guid appointmentId)
@@ -190,9 +163,20 @@ public class BookingService : BaseService, IBookingService
         var merchant = MerchantRepository.GetById(localAppointment.MerchantId);
 
         var client = _squareConnection.GetSquareClient(merchant?.AccessToken);
-        var booking = client.BookingsApi.RetrieveBooking(localAppointment.AppointmentId).Booking;
+        var booking = client
+            .BookingsApi
+            .RetrieveBooking(localAppointment.AppointmentId)
+            .Booking;
+
         var location = client.LocationsApi.RetrieveLocation(booking.LocationId).Location;
-        var teamMember = client.BookingsApi.RetrieveTeamMemberBookingProfile(booking.AppointmentSegments.FirstOrDefault().TeamMemberId).TeamMemberBookingProfile;
+
+        var teamMember = client
+            .BookingsApi
+            .RetrieveTeamMemberBookingProfile(booking.
+                AppointmentSegments
+                .FirstOrDefault()?
+                .TeamMemberId)
+            .TeamMemberBookingProfile;
 
         var appointmentDetails = new AppointmentDetails
         {
@@ -211,5 +195,10 @@ public class BookingService : BaseService, IBookingService
             TeamMember = teamMember.DisplayName
         };
         return appointmentDetails;
+    }
+
+    private string GetCustomerId()
+    {
+        return "VDRFA0THA5681A63CVTVXCAR58";
     }
 }

@@ -9,7 +9,6 @@
     position: relative;
 }
 
-
 .profile-container {
     padding-top: 50vh;
     display: flex;
@@ -33,6 +32,7 @@ a {
     color: black;
     border: none;
     font-size: 20px;
+    margin-left: 0;
 }
 
 .profile-container > form > button {

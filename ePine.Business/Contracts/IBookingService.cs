@@ -5,7 +5,7 @@ namespace ePine.Business.Contracts;
 
 public interface IBookingService
 {
-    IList<TeamMemberBookingProfile> GetTeamMembers(Guid merchantId);
+    IList<TeamMember> GetTeamMembers(Guid merchantId);
     IList<Availability> SearchAvailabilities(BookingCreateModel model);
     void CreateAppointment(Guid userId, BookingCreateModel model);
     void CancelAppointment(Guid appointmentId);

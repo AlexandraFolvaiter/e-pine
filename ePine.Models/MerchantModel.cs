@@ -9,10 +9,4 @@ public class MerchantModel
     public string? Description { get; set; }
 
     public string? AccessToken { get; set; }
-
-    public bool IsPublic { get; set; }
-
-    // TODO
-    // type of business
-    // image(s)
 }

@@ -2,5 +2,7 @@
 
 public class MerchantAdministrator : BaseEntity
 {
-    // TODO: to do 
+    public Guid UserId { get; set; }
+    public Guid MerchantId { get; set; }
+    public virtual Merchant Merchant { get; set; }
 }

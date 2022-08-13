@@ -24,4 +24,10 @@ public class MerchantRepository : BaseRepository, IMerchantRepository
             .Merchants
             .FirstOrDefault(m => m.Id == id && m.IsPublic == true);
     }
+
+    public void Add(Merchant entity)
+    {
+        Context.Merchants.Add(entity);
+        Context.SaveChanges();
+    }
 }

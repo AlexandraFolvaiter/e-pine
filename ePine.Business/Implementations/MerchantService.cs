@@ -1,4 +1,5 @@
 ﻿using ePine.Business.Contracts;
+using ePine.Business.Mappers;
 using ePine.DataAccess.Repositories.Contracts;
 using ePine.Models;
 
@@ -14,14 +15,19 @@ public class MerchantService : BaseService, IMerchantService
     {
         var merchantsEntity = MerchantRepository.GetAll().ToList();
 
-        var models = merchantsEntity.Select(m => new MerchantModel
-        {
-            Id = m.Id,
-            Name = m.Name,
-            Description = m.Description,
-            AccessToken = m.AccessToken,
-            IsPublic = m.IsPublic
-        });
+        var models = merchantsEntity.Select(m => m.ToModel());
+
+        return models;
+    }
+
+    public IEnumerable<MerchantModel> GetMerchantsByUser(Guid userId)
+    {
+        var merchantsEntity = MerchantRepository
+            .GetAll()
+            .Where(m => m.AdminId == userId)
+            .ToList();
+
+        var models = merchantsEntity.Select(m => m.ToModel());
 
         return models;
     }
@@ -30,21 +36,15 @@ public class MerchantService : BaseService, IMerchantService
     {
         var merchantEntity = MerchantRepository.GetById(id);
 
-        if (merchantEntity == null)
-        {
-            // TODO: return message
-            return null;
-        }
+        return merchantEntity == null
+            ? null 
+            : merchantEntity.ToModel();
+    }
 
-        var model =  new MerchantModel
-        {
-            Id = merchantEntity.Id,
-            Name = merchantEntity.Name,
-            Description = merchantEntity.Description,
-            AccessToken = merchantEntity.AccessToken,
-            IsPublic = merchantEntity.IsPublic
-        };
-
-        return model;
+    public void AddMerchant(Guid userId, MerchantModel model)
+    {
+        var entity = model.ToEntity(userId);
+        
+        MerchantRepository.Add(entity);
     }
 }

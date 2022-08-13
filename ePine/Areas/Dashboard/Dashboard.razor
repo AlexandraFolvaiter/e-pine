@@ -1,20 +1,20 @@
 ﻿@page "/dashboard"
+
 @using ePine.Models
 @using ePine.Business.Contracts
 @attribute [Authorize]
 
-
 @inject IBookingService BookingService
+@inject IMerchantService MerchantService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<PageTitle>Dashboard</PageTitle>
+<PageTitle>My Dashboard</PageTitle>
 
 <h1> My dashboard</h1>
 
-
 <div clas="container">
     <div class="row">
-        <div class="col col-6">
+        <div class="col col-7">
             <h3>Appointments</h3>
             <div class="btn-group" role="group" aria-label="Basic outlined example">
                 <button type="button" class="@($"btn btn-warning {GetSelectedClass(false)}")" @onclick="() => UpdateUpcomingAppointmentsSelected(false)">Past</button>
@@ -38,22 +38,45 @@
             </div>
         </div>
 
-        <div class="col col-6">
-        
-            <button class="btn btn-info">Onboard business</button>
-            @* // TODO: if at least a business active *@
-            <h3>Businesses</h3>
-        </div>
+        <div class="col col-5">
+            <h3>Businesses in administration</h3>
+
+            <div class="container merchants-container">
+                <button class="btn btn-info" id="add-merchant-button"  data-bs-toggle="modal" data-bs-target="#merchant-form-modal">Onboard business</button>
+            
+                <div class="modal fade" id="merchant-form-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <MerchantForm></MerchantForm>
+                </div>
+                @if (merchants.Any())
+                {
+                    @foreach (var merchant in merchants)
+                    {
+                        <div class="row">
+                            <div class="col col-8">@merchant.Name</div>
+
+                            <div class="col-4">
+                                <button class="btn btn-outline-primary"> Edit
+                                </button>
+                            </div>
+                        </div>
+                        <hr/>
+                    }
+                }
+                else
+                {
+                    <h4>No business owned yet!</h4>
+                }
+            </div>
+            </div>
     </div>
 </div>
-
-
 
 @code {
     private IList<AppointmentModel> appointments;
     private Guid userId;
     private AppointmentDetails appointment;
     private bool upcomingAppointmentsSelected = true;
+    public IEnumerable<MerchantModel> merchants;
 
     protected override async Task OnInitializedAsync()
     {
@@ -62,6 +85,7 @@
         userId = Guid.Parse(claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value);
 
         SearchAppointments();
+        SearchMerchants();
     }
 
     private void UpdateUpcomingAppointmentsSelected(bool value)
@@ -96,5 +120,10 @@
         return upcomingAppointmentsSelected == value
             ? "selected"
             : string.Empty;
+    }
+
+    private void SearchMerchants()
+    {
+        merchants = MerchantService.GetMerchantsByUser(userId);
     }
 }

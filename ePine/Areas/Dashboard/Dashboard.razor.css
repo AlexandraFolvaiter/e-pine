@@ -1,3 +1,16 @@
 ﻿.selected {
     border: 2px solid #1C5233;
 }
+
+button {
+    min-width: 100px;
+}
+
+.merchants-container{
+    margin-top: 15px;
+    font-size: 20px;
+}
+
+.btn-group, #add-merchant-button {
+    margin-bottom: 20px;
+}

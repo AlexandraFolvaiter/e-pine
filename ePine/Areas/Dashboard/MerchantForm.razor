@@ -1,0 +1,60 @@
+﻿@using ePine.Models
+@using ePine.Business.Contracts
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IMerchantService MerchantService
+
+
+<div class="modal-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Add new merchant</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <EditForm Model="@merchant" OnValidSubmit="@SubmitDataAsync">
+            <div class="modal-body container" style="min-width: 500px;">
+                <div class="row">
+                    <div class="col col-5">
+                        Merchant Name
+                    </div>
+                    <div class="col col-7">
+                        <InputText maxlength="20" @bind-Value="merchant.Name"/>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col col-5">
+                        Description
+                    </div>
+                    <div class="col col-7">
+                        <InputTextArea maxlength="80" @bind-Value="merchant.Description"/>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col col-5">
+                        Access token
+                    </div>
+                    <div class="col col-7">
+                        <InputText maxlength="50" @bind-Value="merchant.AccessToken"/>
+                    </div>
+                </div>
+            </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Onboard merchant</button>
+        </div>
+        </EditForm>
+    </div>
+</div>
+@code {
+    private MerchantModel merchant = new MerchantModel();
+
+    public async Task SubmitDataAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var claims = authenticationState.User.Claims;
+        var userId = Guid.Parse(claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value);
+
+        MerchantService.AddMerchant(userId, merchant);
+    }
+}

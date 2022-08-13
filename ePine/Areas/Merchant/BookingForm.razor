@@ -10,17 +10,15 @@
 @inject IBookingService BookingService
 @inject AuthenticationStateProvider AuthenticationStateProvider
 
-<div class="modal-dialog booking-dialog" >
+<div class="modal-dialog booking-dialog">
     <div class="modal-content">
         <div class="modal-header">
-            <h5 class="modal-title" id="staticBackdropLabel">Create a booking</h5>
+            <h5 class="modal-title">Create a booking</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         
-        <EditForm Model="@BookingModel" OnValidSubmit="@SendCreateRequest" class="container">
+        <EditForm OnValidSubmit="@SendCreateRequest" EditContext="editContext" class="container">
             <div class="modal-body row">
-                @* // TODO: choose location first => show services per location*@
-                
                 <div class="col col-4">
                     <div class="form-field">
                         <label class="control-label">Location* </label>
@@ -32,7 +30,6 @@
                                 </option>
                             }
                         </InputSelect>
-                        @* // TODO: show address *@
                     </div>
                     <hr/>
                     <div class="form-field">
@@ -55,10 +52,9 @@
                         <label class="control-label">Team member* </label>
                         <InputSelect class="form-control form-select" @bind-Value="@BookingModel.TeamMemberId">
                             <option selected>Choose a team member</option>
-                            @* // TODO: show team members by choosed service *@
                             @foreach (var teamMember in teamMembers)
                             {
-                                <option value="@teamMember.TeamMemberId">@($"{teamMember.DisplayName}")
+                                <option value="@teamMember.Id">@($"{teamMember.GivenName} {teamMember.FamilyName}")
                                 </option>
                             }
                         </InputSelect>
@@ -70,8 +66,6 @@
                             StartDate: <InputDate class="form-control" DisplayName="StartDate" @bind-Value="@BookingModel.SearchAvailabilityStartDate"/>
                             EndDate: <InputDate class="form-control" DisplayName="EndDate" @bind-Value="@BookingModel.SearchAvailabilityEndDate"/>
                         </div>
-                        <button type="button" class="btn btn-outline-primary" onclick="@SearchAvailability">Check availability</button>
-
                     </div>
                 </div>
                
@@ -79,7 +73,7 @@
                     <div class="form-field">
                         <h3>Availability for booking</h3>
                         <div class="search-availability-container">
-                            @if(searchAvailabilities != null && SearchAvailabilityPerformed)
+                            @if(searchAvailabilities != null && CanCallSearchAvailableSlots())
                             {
                                 if (!searchAvailabilities.Any())
                                 {
@@ -105,7 +99,7 @@
                             }
                             else
                             {
-                                <p>Check availabilities!</p>
+                                <p>Please add all the information to show the available slots!</p>
                             }
                         </div>
 
@@ -115,12 +109,11 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                @* // TODO: validations & disableing *@
-                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#overview-modal">See appointment details</button>
+                <button type="button" disabled="@(!CanCallSearchAvailableSlots() || BookingModel.SelectedStartAt == null)" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#overview-modal">See appointment details</button>
                 
                 <div class="modal fade" id="overview-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-5" aria-hidden="true">
                     <div class="modal-dialog  modal-dialog-centered">
-                        <div class="modal-content">
+                        <div class="modal-content overview-modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="exampleModalLabel">Appointment overview</h5>
                             </div>
@@ -135,7 +128,7 @@
                                 </div>
                                 <div class="row">
                                     <div class="col col-5">TeamMember</div>
-                                    <div class="col col-7">@teamMembers.FirstOrDefault(tm => tm.TeamMemberId.Equals(BookingModel.TeamMemberId))?.DisplayName <hr/></div>
+                                    <div class="col col-7">@teamMembers.FirstOrDefault(tm => tm.Id.Equals(BookingModel.TeamMemberId))?.GivenName <hr/></div>
                                 </div>
                                 <div class="row">
                                     <div class="col col-5">Starts at:</div>
@@ -158,7 +151,7 @@
     </div>
 </div>
 @code {
-
+    private EditContext editContext;
     [Parameter]
     public string MerchantId { get; set; }
     [Parameter]
@@ -166,12 +159,10 @@
 
     private IList<CatalogObject> catalogItems;
     private IList<Location> locations;
-    private IList<TeamMemberBookingProfile> teamMembers;
+    private IList<TeamMember> teamMembers;
     private IEnumerable<IGrouping<string, Availability>> searchAvailabilities { get; set; }
 
     public BookingCreateModel BookingModel = new BookingCreateModel();
-
-    public bool SearchAvailabilityPerformed = false;
 
     protected override void OnInitialized()
     {
@@ -180,24 +171,30 @@
         locations = LocationService.GetLocations(parsedMerchantId);
         catalogItems = CatalogService.GetCatalogItems(parsedMerchantId);
         teamMembers = BookingService.GetTeamMembers(parsedMerchantId);
+        
+        editContext = new EditContext(BookingModel);
+        editContext.OnFieldChanged += SearchAvailability;
     }
 
     public async Task SendCreateRequest()
     {
-        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var claims = authenticationState.User.Claims;
         var userId = claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
 
         BookingService.CreateAppointment(Guid.Parse(userId), BookingModel);
         OnBookingCompleted.InvokeAsync();
+        BookingModel = new BookingCreateModel();
     }
 
-    public void SearchAvailability()
+    public void SearchAvailability(object sender, FieldChangedEventArgs e)
     {
-        SearchAvailabilityPerformed = true;
-        searchAvailabilities = BookingService
-            .SearchAvailabilities(BookingModel)
-            .GroupBy(availability => availability.StartAt[..10]);
+        if (CanCallSearchAvailableSlots())
+        {
+            searchAvailabilities = BookingService
+                .SearchAvailabilities(BookingModel)
+                .GroupBy(availability => availability.StartAt[..10]);
+        }
     }
 
     public void SelectSlot(string startAt)
@@ -211,5 +208,22 @@
             ? " selected"
             : string.Empty;
         return $"p-3 appointment-availability-slot-container{extraClass}";
+    }
+
+    private bool IsServiceDropdownDisabled()
+    {
+        return BookingModel.TeamMemberId == null;
+    }
+
+    private bool IsTeamMembersDropdownDisabled()
+    {
+        return BookingModel.ServiceVariantId == null;
+    }
+
+    private bool CanCallSearchAvailableSlots()
+    {
+        return BookingModel.LocationId != null &&
+               BookingModel.TeamMemberId != null &&
+               BookingModel.ServiceVariantId != null;
     }
 }
