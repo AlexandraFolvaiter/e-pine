@@ -199,7 +199,7 @@ public class BookingService : BaseService, IBookingService
         return appointmentDetails;
     }
 
-    private string? GetCustomerId(Guid userId, SquareClient client)
+    private string? GetCustomerId(Guid userId, SquareClient? client)
     {
         var user = _userManager.FindByIdAsync(userId.ToString()).Result;
 

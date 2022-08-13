@@ -115,7 +115,7 @@
                     <div class="modal-dialog  modal-dialog-centered">
                         <div class="modal-content overview-modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="exampleModalLabel">Appointment overview</h5>
+                                <h5 class="modal-title">Appointment overview</h5>
                             </div>
                             <div class="modal-body container">
                                 <div class="row">
@@ -178,12 +178,13 @@
 
     public async Task SendCreateRequest()
     {
-         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var claims = authenticationState.User.Claims;
         var userId = claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
 
+        BookingModel.MerchantId = Guid.Parse(MerchantId);
         BookingService.CreateAppointment(Guid.Parse(userId), BookingModel);
-        OnBookingCompleted.InvokeAsync();
+        await OnBookingCompleted.InvokeAsync();
         BookingModel = new BookingCreateModel();
     }
 
@@ -191,6 +192,7 @@
     {
         if (CanCallSearchAvailableSlots())
         {
+            BookingModel.MerchantId = Guid.Parse(MerchantId);
             searchAvailabilities = BookingService
                 .SearchAvailabilities(BookingModel)
                 .GroupBy(availability => availability.StartAt[..10]);

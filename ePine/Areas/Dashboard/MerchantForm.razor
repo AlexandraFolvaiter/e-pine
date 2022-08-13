@@ -4,21 +4,20 @@
 @inject AuthenticationStateProvider AuthenticationStateProvider
 @inject IMerchantService MerchantService
 
-
 <div class="modal-dialog">
     <div class="modal-content">
         <div class="modal-header">
             <h5 class="modal-title">Add new merchant</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
-        <EditForm Model="@merchant" OnValidSubmit="@SubmitDataAsync">
-            <div class="modal-body container" style="min-width: 500px;">
+        <EditForm Model="@_merchant" OnValidSubmit="@SubmitDataAsync">
+            <div class="modal-body container">
                 <div class="row">
                     <div class="col col-5">
                         Merchant Name
                     </div>
                     <div class="col col-7">
-                        <InputText maxlength="20" @bind-Value="merchant.Name"/>
+                        <InputText maxlength="20" @bind-Value="_merchant.Name"/>
                     </div>
                 </div>
 
@@ -27,7 +26,7 @@
                         Description
                     </div>
                     <div class="col col-7">
-                        <InputTextArea maxlength="80" @bind-Value="merchant.Description"/>
+                        <InputTextArea maxlength="80" @bind-Value="_merchant.Description"/>
                     </div>
                 </div>
                 <div class="row">
@@ -35,7 +34,7 @@
                         Access token
                     </div>
                     <div class="col col-7">
-                        <InputText maxlength="50" @bind-Value="merchant.AccessToken"/>
+                        <InputText @bind-Value="_merchant.AccessToken"/>
                     </div>
                 </div>
             </div>
@@ -47,7 +46,10 @@
     </div>
 </div>
 @code {
-    private MerchantModel merchant = new MerchantModel();
+    [Parameter]
+    public EventCallback<int> OnMerchantSubmitted { get; set; }
+
+    private MerchantModel _merchant = new MerchantModel();
 
     public async Task SubmitDataAsync()
     {
@@ -55,6 +57,7 @@
         var claims = authenticationState.User.Claims;
         var userId = Guid.Parse(claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value);
 
-        MerchantService.AddMerchant(userId, merchant);
+        MerchantService.AddMerchant(userId, _merchant);
+        await OnMerchantSubmitted.InvokeAsync();
     }
 }

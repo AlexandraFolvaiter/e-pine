@@ -42,10 +42,10 @@
             <h3>Businesses in administration</h3>
 
             <div class="container merchants-container">
-                <button class="btn btn-info" id="add-merchant-button"  data-bs-toggle="modal" data-bs-target="#merchant-form-modal">Onboard business</button>
+                <button class="btn btn-info" id="add-merchant-button" data-bs-toggle="modal" data-bs-target="#merchant-form-modal">Onboard business</button>
             
                 <div class="modal fade" id="merchant-form-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
-                    <MerchantForm></MerchantForm>
+                    <MerchantForm OnMerchantSubmitted="@SearchMerchants"></MerchantForm>
                 </div>
                 @if (merchants.Any())
                 {
@@ -67,7 +67,7 @@
                     <h4>No business owned yet!</h4>
                 }
             </div>
-            </div>
+        </div>
     </div>
 </div>
 
