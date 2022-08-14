@@ -13,16 +13,16 @@
 
 <PageTitle>MerchantModel details</PageTitle>
 
-@if (merchant == null)
+@if (Merchant == null)
 {
     <h2>Loading...</h2>
 }
 else
 {
-    <h1>@merchant.Name</h1>
+    <h1>@Merchant.Name</h1>
 
     <div>
-        @merchant.Description
+        @Merchant.Description
     </div>
         
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBooking">Book a service</button>
@@ -36,7 +36,7 @@ else
             <div class="col col-6">
                 <div>
                     <h3>Locations</h3>
-                    @foreach (var location in locations)
+                    @foreach (var location in _locations)
                     {
                         <div class="address-container">
                             @location.Name
@@ -52,7 +52,7 @@ else
                     <h3>
                         Services
                     </h3>
-                    @foreach (var catalogItem in catalogItems)
+                    @foreach (var catalogItem in _catalogItems)
                     {
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="item-@catalogItem.Id">
@@ -87,10 +87,10 @@ else
                 <h4>Loading...</h4>
                 
                 <h3>Upcoming Appointments</h3>
-                @if (appointments.Any())
+                @if (_appointments.Any())
                 {
                     <div class="">
-                        @foreach (var appointment in appointments)
+                        @foreach (var appointment in _appointments)
                         {
                             <ePine.Areas.Shared.AppointmentListElem
                                 AppointmentModel="appointment"
@@ -109,7 +109,7 @@ else
 }
 
 <div class="modal fade" id="details-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
-    <ePine.Areas.Shared.AppointmentDetailsModal AppointmentModel="appointment"/>
+    <ePine.Areas.Shared.AppointmentDetailsModal AppointmentModel="_appointment"/>
 </div>
 
 @code {
@@ -117,26 +117,26 @@ else
     [Parameter]
     public string Id { get; set; }
 
-    private MerchantModel merchant { get; set; }
+    private MerchantModel Merchant { get; set; }
 
-    private IList<CatalogObject> catalogItems;
-    private IList<AppointmentModel> appointments;
-    private IList<Location> locations;
+    private IList<CatalogObject> _catalogItems;
+    private IList<AppointmentModel> _appointments;
+    private IList<Location> _locations;
 
-    private Guid userId;
-    private AppointmentDetails appointment;
+    private Guid _userId;
+    private AppointmentDetails _appointment;
 
     protected override async Task OnInitializedAsync()
     {
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var claims = authenticationState.User.Claims;
-        userId = Guid.Parse(claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value);
+        _userId = Guid.Parse(claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value);
 
         var parsedMerchantId = Guid.Parse(Id);
-        merchant = MerchantService.GetMerchant(parsedMerchantId);
-        catalogItems = CatalogService.GetCatalogItems(parsedMerchantId);
-        locations = LocationService.GetLocations(parsedMerchantId);
-        appointments = BookingService.GetGeneralAppointmentsByMerchantId(userId, parsedMerchantId);
+        Merchant = MerchantService.GetMerchant(parsedMerchantId);
+        _catalogItems = CatalogService.GetCatalogItems(parsedMerchantId);
+        _locations = LocationService.GetLocations(parsedMerchantId);
+        _appointments = BookingService.GetGeneralAppointmentsByMerchantId(_userId, parsedMerchantId);
     }
 
     public string FormatTime(long? seconds)
@@ -154,13 +154,13 @@ else
 
     private void SearchAppointments()
     {
-        appointments = BookingService.GetGeneralAppointmentsByMerchantId(userId, Guid.Parse(Id));
+        _appointments = BookingService.GetGeneralAppointmentsByMerchantId(_userId, Guid.Parse(Id));
     }
 
     private void ShowAppointmentDetails(Guid id)
     {
-        appointment = null;
-        appointment = BookingService.GetBooking(id);
+        _appointment = null;
+        _appointment = BookingService.GetBooking(id);
     }
 
     private void CancelAppointment(Guid id)

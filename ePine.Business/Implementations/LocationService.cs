@@ -1,7 +1,6 @@
 ﻿using ePine.Business.Contracts;
 using ePine.DataAccess.Connections;
 using ePine.DataAccess.Repositories.Contracts;
-using Square;
 using Square.Models;
 
 namespace ePine.Business.Implementations;
@@ -25,10 +24,8 @@ public class LocationService : BaseService, ILocationService
 
         var client = _squareConnection.GetSquareClient(merchant.AccessToken);
 
-        var locations = client.LocationsApi.ListLocations().Locations;
+        var locations = client?.LocationsApi.ListLocations().Locations;
 
         return locations;
     }
-
-
 }

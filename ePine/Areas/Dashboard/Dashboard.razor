@@ -21,9 +21,9 @@
                 <button type="button" class="@($"btn btn-primary {GetSelectedClass(true)}")" @onclick="() => UpdateUpcomingAppointmentsSelected(true)">Upcoming</button>
             </div>
             <div>
-                @if (appointments.Any())
+                @if (_appointments.Any())
                 {
-                    @foreach (var appointment in appointments)
+                    @foreach (var appointment in _appointments)
                     {
                         <ePine.Areas.Shared.AppointmentListElem
                             AppointmentModel="appointment"
@@ -42,14 +42,14 @@
             <h3>Businesses in administration</h3>
 
             <div class="container merchants-container">
-                <button class="btn btn-info" id="add-merchant-button" data-bs-toggle="modal" data-bs-target="#merchant-form-modal">Onboard business</button>
+                <button class="btn btn-info" id="add-merchant-button" data-bs-toggle="modal" data-bs-target="#merchant-form-modal">Add business</button>
             
                 <div class="modal fade" id="merchant-form-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
                     <MerchantForm OnMerchantSubmitted="@SearchMerchants"></MerchantForm>
                 </div>
-                @if (merchants.Any())
+                @if (_merchants.Any())
                 {
-                    @foreach (var merchant in merchants)
+                    @foreach (var merchant in _merchants)
                     {
                         <div class="row">
                             <div class="col col-8">@merchant.Name</div>
@@ -72,17 +72,17 @@
 </div>
 
 @code {
-    private IList<AppointmentModel> appointments;
-    private Guid userId;
-    private AppointmentDetails appointment;
-    private bool upcomingAppointmentsSelected = true;
-    public IEnumerable<MerchantModel> merchants;
+    private IEnumerable<MerchantModel> _merchants;
+    private IList<AppointmentModel> _appointments;
+    private Guid _userId;
+    private AppointmentDetails _appointment;
+    private bool _upcomingAppointmentsSelected = true;
 
     protected override async Task OnInitializedAsync()
     {
         var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
         var claims = authenticationState.User.Claims;
-        userId = Guid.Parse(claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value);
+        _userId = Guid.Parse(claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value);
 
         SearchAppointments();
         SearchMerchants();
@@ -90,14 +90,14 @@
 
     private void UpdateUpcomingAppointmentsSelected(bool value)
     {
-        upcomingAppointmentsSelected = value;
+        _upcomingAppointmentsSelected = value;
         SearchAppointments();
     }
 
     private void ShowAppointmentDetails(Guid id)
     {
-        appointment = null;
-        appointment = BookingService.GetBooking(id);
+        _appointment = null;
+        _appointment = BookingService.GetBooking(id);
     }
 
     private void CancelAppointment(Guid id)
@@ -108,22 +108,22 @@
 
     private void SearchAppointments()
     {
-        var localAppointments = BookingService.GetGeneralAppointments(userId);
+        var localAppointments = BookingService.GetGeneralAppointments(_userId);
 
-        appointments = upcomingAppointmentsSelected 
+        _appointments = _upcomingAppointmentsSelected 
             ? localAppointments.Where(a => !a.IsInThePast).ToList()
             : localAppointments.Where(a => a.IsInThePast).ToList();
     }
 
     private string GetSelectedClass(bool value)
     {
-        return upcomingAppointmentsSelected == value
+        return _upcomingAppointmentsSelected == value
             ? "selected"
             : string.Empty;
     }
 
     private void SearchMerchants()
     {
-        merchants = MerchantService.GetMerchantsByUser(userId);
+        _merchants = MerchantService.GetMerchantsByUser(_userId);
     }
 }

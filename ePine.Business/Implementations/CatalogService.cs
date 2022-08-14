@@ -1,7 +1,6 @@
 ﻿using ePine.Business.Contracts;
 using ePine.DataAccess.Connections;
 using ePine.DataAccess.Repositories.Contracts;
-using Square;
 using Square.Models;
 
 namespace ePine.Business.Implementations;
@@ -26,10 +25,8 @@ public class CatalogService : BaseService, ICatalogService
 
         var client = _squareConnection.GetSquareClient(merchant.AccessToken);
 
-        var catalogItems = client.CatalogApi.ListCatalog().Objects;
+        var catalogItems = client?.CatalogApi.ListCatalog().Objects;
 
         return catalogItems;
     }
-
-
 }

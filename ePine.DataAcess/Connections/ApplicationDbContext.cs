@@ -14,12 +14,4 @@ public class ApplicationDbContext : IdentityDbContext
 
     public DbSet<Merchant?> Merchants { get; set; }
     public DbSet<Appointment?> Appointments { get; set; }
-    // public DbSet<MerchantAdministrator?> MerchantAdministrators{ get; set; }
-    //
-    // void OnModelCreating(ModelBuilder modelBuilder)
-    // {
-    //     modelBuilder.Entity<MerchantAdministrator>()
-    //         .HasOne<Merchant>()
-    //         ;
-    // }
 }

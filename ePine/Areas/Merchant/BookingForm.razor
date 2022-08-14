@@ -17,14 +17,14 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         
-        <EditForm OnValidSubmit="@SendCreateRequest" EditContext="editContext" class="container">
+        <EditForm OnValidSubmit="@SendCreateRequest" EditContext="_editContext" class="container">
             <div class="modal-body row">
                 <div class="col col-4">
                     <div class="form-field">
                         <label class="control-label">Location* </label>
                         <InputSelect class="form-control form-select" @bind-Value="@BookingModel.LocationId">
                             <option selected>Choose a location</option>
-                            @foreach (var location in locations)
+                            @foreach (var location in _locations)
                             {
                                 <option value="@location.Id">@($"{location.Name}")
                                 </option>
@@ -36,7 +36,7 @@
                         <label class="control-label">Service* </label>
                         <InputSelect class="form-control form-select" @bind-Value="@BookingModel.ServiceDetails">
                             <option selected>Choose a service to book</option>
-                            @foreach (var catalogItem in catalogItems)
+                            @foreach (var catalogItem in _catalogItems)
                             {
                                 @foreach (var variant in catalogItem.ItemData.Variations)
                                 {
@@ -52,7 +52,7 @@
                         <label class="control-label">Team member* </label>
                         <InputSelect class="form-control form-select" @bind-Value="@BookingModel.TeamMemberId">
                             <option selected>Choose a team member</option>
-                            @foreach (var teamMember in teamMembers)
+                            @foreach (var teamMember in _teamMembers)
                             {
                                 <option value="@teamMember.Id">@($"{teamMember.GivenName} {teamMember.FamilyName}")
                                 </option>
@@ -73,13 +73,13 @@
                     <div class="form-field">
                         <h3>Availability for booking</h3>
                         <div class="search-availability-container">
-                            @if(searchAvailabilities != null && CanCallSearchAvailableSlots())
+                            @if(SearchAvailabilities != null && CanCallSearchAvailableSlots())
                             {
-                                if (!searchAvailabilities.Any())
+                                if (!SearchAvailabilities.Any())
                                 {
                                     <p>No available slots in this time range. Please modify to change!</p>
                                 }
-                                @foreach (var availability in searchAvailabilities)
+                                @foreach (var availability in SearchAvailabilities)
                                 {
                                     <h3>@availability.Key</h3>
 
@@ -120,7 +120,7 @@
                             <div class="modal-body container">
                                 <div class="row">
                                     <div class="col col-5">Location</div>
-                                    <div class="col col-7">@locations.FirstOrDefault(l => l.Id.Equals(BookingModel.LocationId))?.Name <hr/></div>
+                                    <div class="col col-7">@_locations.FirstOrDefault(l => l.Id.Equals(BookingModel.LocationId))?.Name <hr/></div>
                                 </div>
                                 <div class="row">
                                     <div class="col col-5">Service</div>
@@ -128,7 +128,7 @@
                                 </div>
                                 <div class="row">
                                     <div class="col col-5">TeamMember</div>
-                                    <div class="col col-7">@teamMembers.FirstOrDefault(tm => tm.Id.Equals(BookingModel.TeamMemberId))?.GivenName <hr/></div>
+                                    <div class="col col-7">@_teamMembers.FirstOrDefault(tm => tm.Id.Equals(BookingModel.TeamMemberId))?.GivenName <hr/></div>
                                 </div>
                                 <div class="row">
                                     <div class="col col-5">Starts at:</div>
@@ -151,29 +151,29 @@
     </div>
 </div>
 @code {
-    private EditContext editContext;
     [Parameter]
     public string MerchantId { get; set; }
     [Parameter]
     public EventCallback<int> OnBookingCompleted { get; set; }
 
-    private IList<CatalogObject> catalogItems;
-    private IList<Location> locations;
-    private IList<TeamMember> teamMembers;
-    private IEnumerable<IGrouping<string, Availability>> searchAvailabilities { get; set; }
-
     public BookingCreateModel BookingModel = new BookingCreateModel();
+
+    private IList<CatalogObject> _catalogItems;
+    private IList<Location> _locations;
+    private IList<TeamMember> _teamMembers;
+    private IEnumerable<IGrouping<string, Availability>> SearchAvailabilities { get; set; }
+    private EditContext _editContext;
 
     protected override void OnInitialized()
     {
         var parsedMerchantId = Guid.Parse(MerchantId);
         BookingModel.MerchantId = parsedMerchantId;
-        locations = LocationService.GetLocations(parsedMerchantId);
-        catalogItems = CatalogService.GetCatalogItems(parsedMerchantId);
-        teamMembers = BookingService.GetTeamMembers(parsedMerchantId);
+        _locations = LocationService.GetLocations(parsedMerchantId);
+        _catalogItems = CatalogService.GetCatalogItems(parsedMerchantId);
+        _teamMembers = BookingService.GetTeamMembers(parsedMerchantId);
         
-        editContext = new EditContext(BookingModel);
-        editContext.OnFieldChanged += SearchAvailability;
+        _editContext = new EditContext(BookingModel);
+        _editContext.OnFieldChanged += SearchAvailability;
     }
 
     public async Task SendCreateRequest()
@@ -193,7 +193,7 @@
         if (CanCallSearchAvailableSlots())
         {
             BookingModel.MerchantId = Guid.Parse(MerchantId);
-            searchAvailabilities = BookingService
+            SearchAvailabilities = BookingService
                 .SearchAvailabilities(BookingModel)
                 .GroupBy(availability => availability.StartAt[..10]);
         }
@@ -210,16 +210,6 @@
             ? " selected"
             : string.Empty;
         return $"p-3 appointment-availability-slot-container{extraClass}";
-    }
-
-    private bool IsServiceDropdownDisabled()
-    {
-        return BookingModel.TeamMemberId == null;
-    }
-
-    private bool IsTeamMembersDropdownDisabled()
-    {
-        return BookingModel.ServiceVariantId == null;
     }
 
     private bool CanCallSearchAvailableSlots()
