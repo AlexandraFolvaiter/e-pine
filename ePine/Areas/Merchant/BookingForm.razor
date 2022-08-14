@@ -89,7 +89,7 @@
                                             @foreach (var elem in availability)
                                             {
                                                 <div class="col">
-                                                    <div class="@GetSlotClass(elem.StartAt)" @onclick="() => SelectSlot(elem.StartAt)">@($"{DateTime.Parse(elem.StartAt):HH:mm}")</div>
+                                                    <div class="@GetSlotClass(elem.StartAt)" @onclick="() => SelectSlot(elem.StartAt)">@($"{DateTime.Parse(elem.StartAt):hh:mm tt}")</div>
                                                 </div>
                                             }
                                         </div>
