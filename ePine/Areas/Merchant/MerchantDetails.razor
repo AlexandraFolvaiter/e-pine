@@ -56,11 +56,11 @@ else
                     {
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="item-@catalogItem.Id">
-                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#@catalogItem.Id" aria-expanded="false" aria-controls="@catalogItem.Id">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item-content-@catalogItem.Id" aria-expanded="false" aria-controls="item-content-@catalogItem.Id">
                                     @catalogItem.ItemData.Name
                                 </button>
                             </h2>
-                            <div id="@catalogItem.Id" class="accordion-collapse collapse">
+                            <div id="item-content-@catalogItem.Id" class="accordion-collapse collapse">
                                 <div class="accordion-body">
                                     <p>
                                         @catalogItem.ItemData.Description
