@@ -1,0 +1,62 @@
+﻿@page "/merchants"
+@using ePine.Models
+@using ePine.Business.Contracts
+
+@inject IMerchantService MerchantService
+
+<PageTitle>Merchants</PageTitle>
+
+<div class="management-list">
+    <div class="input-group mb-3">
+        <input type="search" class="form-control rounded" placeholder="Search" aria-label="Search" aria-describedby="search-addon" />
+        <button type="button" class="btn btn-outline-primary">Search</button>
+    </div>
+    <div>
+        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWidthExample" aria-expanded="false" aria-controls="collapseWidthExample">
+            Type of services
+        </button>
+        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWidthExample" aria-expanded="false" aria-controls="collapseWidthExample">
+            Location
+        </button>
+        <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#collapseWidthExample" aria-expanded="false" aria-controls="collapseWidthExample">
+            Delivery location
+        </button>
+    </div>
+</div>
+<hr/>
+@if (_merchants.Any())
+{
+    <div class="container text-center">
+        <div class="row row-cols-2 row-cols-lg-4 g-2 g-lg-3">
+            @foreach (var merchant in _merchants)
+            {
+                <div class="col">
+                    <div class="p-3 border bg-light">
+                        <div class="card" style="width: 100%">
+                            <img src="images/ePine-background.png" class="card-img-top">
+                            <div class="card-body">
+                                <h5 class="card-title">@merchant.Name</h5>
+                                <p class="card-text">@merchant.Description</p>
+                                <a href="merchants/@merchant.Id" class="btn btn-primary">See more details</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <h2>Loading..</h2>
+}
+
+@code {
+
+    private IEnumerable<MerchantModel> _merchants;
+
+    protected override void OnInitialized()
+    {
+        _merchants = MerchantService.GetMerchants();
+    }
+}

@@ -1,0 +1,129 @@
+﻿@page "/dashboard"
+
+@using ePine.Models
+@using ePine.Business.Contracts
+@attribute [Authorize]
+
+@inject IBookingService BookingService
+@inject IMerchantService MerchantService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>My Dashboard</PageTitle>
+
+<h1> My dashboard</h1>
+
+<div clas="container">
+    <div class="row">
+        <div class="col col-7">
+            <h3>Appointments</h3>
+            <div class="btn-group" role="group" aria-label="Basic outlined example">
+                <button type="button" class="@($"btn btn-warning {GetSelectedClass(false)}")" @onclick="() => UpdateUpcomingAppointmentsSelected(false)">Past</button>
+                <button type="button" class="@($"btn btn-primary {GetSelectedClass(true)}")" @onclick="() => UpdateUpcomingAppointmentsSelected(true)">Upcoming</button>
+            </div>
+            <div>
+                @if (_appointments.Any())
+                {
+                    @foreach (var appointment in _appointments)
+                    {
+                        <ePine.Areas.Shared.AppointmentListElem
+                            AppointmentModel="appointment"
+                            OnDetailsAppointment="ShowAppointmentDetails"
+                            OnCancelAppointment="CancelAppointment"/>
+                    }
+                }
+                else
+                {
+                    <h4>No appointments!</h4>
+                }
+            </div>
+        </div>
+
+        <div class="col col-5">
+            <h3>Businesses in administration</h3>
+
+            <div class="container merchants-container">
+                <button class="btn btn-info" id="add-merchant-button" data-bs-toggle="modal" data-bs-target="#merchant-form-modal">Add business</button>
+            
+                <div class="modal fade" id="merchant-form-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                    <MerchantForm OnMerchantSubmitted="@SearchMerchants"></MerchantForm>
+                </div>
+                @if (_merchants.Any())
+                {
+                    @foreach (var merchant in _merchants)
+                    {
+                        <div class="row">
+                            <div class="col col-8">@merchant.Name</div>
+
+                            <div class="col-4">
+                                <button class="btn btn-outline-primary"> Edit
+                                </button>
+                            </div>
+                        </div>
+                        <hr/>
+                    }
+                }
+                else
+                {
+                    <h4>No business owned yet!</h4>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private IEnumerable<MerchantModel> _merchants;
+    private IList<AppointmentModel> _appointments;
+    private Guid _userId;
+    private AppointmentDetails _appointment;
+    private bool _upcomingAppointmentsSelected = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var claims = authenticationState.User.Claims;
+        _userId = Guid.Parse(claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value);
+
+        SearchAppointments();
+        SearchMerchants();
+    }
+
+    private void UpdateUpcomingAppointmentsSelected(bool value)
+    {
+        _upcomingAppointmentsSelected = value;
+        SearchAppointments();
+    }
+
+    private void ShowAppointmentDetails(Guid id)
+    {
+        _appointment = null;
+        _appointment = BookingService.GetBooking(id);
+    }
+
+    private void CancelAppointment(Guid id)
+    {
+        BookingService.CancelAppointment(id);
+        SearchAppointments();
+    }
+
+    private void SearchAppointments()
+    {
+        var localAppointments = BookingService.GetGeneralAppointments(_userId);
+
+        _appointments = _upcomingAppointmentsSelected 
+            ? localAppointments.Where(a => !a.IsInThePast).ToList()
+            : localAppointments.Where(a => a.IsInThePast).ToList();
+    }
+
+    private string GetSelectedClass(bool value)
+    {
+        return _upcomingAppointmentsSelected == value
+            ? "selected"
+            : string.Empty;
+    }
+
+    private void SearchMerchants()
+    {
+        _merchants = MerchantService.GetMerchantsByUser(_userId);
+    }
+}

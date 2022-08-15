@@ -1,0 +1,40 @@
+﻿.first-page-container {
+    background-image: url("images/ePine-background.png");
+    height: 100vh;
+    background-position: center; /* Center the image */
+    background-repeat: no-repeat; /* Do not repeat the image */
+    background-size: cover;
+    margin: 0;
+    padding: 0;
+    position: relative;
+}
+
+.profile-container {
+    padding-top: 50vh;
+    display: flex;
+    justify-items: center;
+    justify-content: center;
+}
+.buttons-container {
+    padding-top: 50px;
+    display: flex;
+    justify-items: center;
+    justify-content: center;
+}
+.not-authorized {
+    padding-top: 50vh;
+}
+a {
+    margin: 20px;
+}
+
+.profile-container > a, .profile-container > a:hover, .profile-container > a:visited, .profile-container > a:active {
+    color: black;
+    border: none;
+    font-size: 20px;
+    margin-left: 0;
+}
+
+.profile-container > form > button {
+    margin-top: 15px;
+}

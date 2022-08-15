@@ -1,0 +1,50 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>aspnet-ePine-8D3F429B-C809-4AF1-8F67-44E481008AD6</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Areas\Dashboard\Dashboard.razor.css" />
+    <None Remove="Areas\Dashboard\MerchantForm.razor.css" />
+    <None Remove="Areas\Merchant\BookingForm.razor.css" />
+    <None Remove="Areas\Merchant\FirstPage.razor.css" />
+    <None Remove="Areas\Merchant\MerchantDetails.razor.css" />
+    <None Remove="Areas\Merchant\Merchants.razor.css" />
+    <None Remove="Areas\Shared\Appointment.razor.css" />
+    <None Remove="Areas\Shared\AppointmentDetailsModal.razor.css" />
+    <None Remove="Pages\FirstPage.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Areas\Dashboard\Dashboard.razor.css" />
+    <Content Include="Areas\Dashboard\MerchantForm.razor.css" />
+    <Content Include="Areas\Merchant\BookingForm.razor.css" />
+    <Content Include="Areas\Merchant\MerchantDetails.razor.css" />
+    <Content Include="Areas\Merchant\Merchants.razor.css" />
+    <Content Include="Areas\Shared\AppointmentDetailsModal.razor.css" />
+    <Content Include="Pages\FirstPage.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="6.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="6.0.7" />
+    <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="6.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.7" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="6.0.7" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ePine.Business\ePine.Business.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Data\" />
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
+</Project>

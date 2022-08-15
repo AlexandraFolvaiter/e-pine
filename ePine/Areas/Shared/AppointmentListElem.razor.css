@@ -1,0 +1,11 @@
+﻿.appointment-container {
+    margin: 5px;
+    padding: 5px;
+    border: 0.5px solid #2F8955;
+    border-radius: 5px;
+}
+
+.text {
+    padding: 10px 20px;
+    font-size: 16px;
+}

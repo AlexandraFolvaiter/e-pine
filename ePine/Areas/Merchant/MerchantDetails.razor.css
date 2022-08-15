@@ -1,0 +1,19 @@
+﻿.accordion-button:not(.collapsed) {
+    background-color: #A9C9AB;
+    color: #2F8955;
+}
+.container {
+    margin-top: 20px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+.address-container {
+    margin: 5px;
+    font-size: 20px;
+}
+
+.location-address-container {
+    font-size: 16px;
+    margin-left: 30px;  
+}

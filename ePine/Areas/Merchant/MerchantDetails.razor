@@ -1,0 +1,171 @@
+﻿@page "/merchants/{Id}"
+@using ePine.Business.Contracts
+@using ePine.Models
+@using Square.Models
+
+@attribute [Authorize]
+
+@inject ICatalogService CatalogService
+@inject IMerchantService MerchantService
+@inject ILocationService LocationService
+@inject IBookingService BookingService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<PageTitle>MerchantModel details</PageTitle>
+
+@if (Merchant == null)
+{
+    <h2>Loading...</h2>
+}
+else
+{
+    <h1>@Merchant.Name</h1>
+
+    <div>
+        @Merchant.Description
+    </div>
+        
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBooking">Book a service</button>
+
+    <div class="modal fade" id="createBooking" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
+        <BookingForm merchantId="@Id" OnBookingCompleted="@SearchAppointments"/>
+    </div>
+
+    <div class="container">
+        <div class="row">
+            <div class="col col-6">
+                <div>
+                    <h3>Locations</h3>
+                    @foreach (var location in _locations)
+                    {
+                        <div class="address-container">
+                            @location.Name
+                            <div class="location-address-container">
+                                Address: @($"{location.Address.AddressLine1}, {location.Address.Locality}, {location.Address.Country}, {location.Address.PostalCode}")
+                            </div>
+                        </div>
+                    }
+                </div>
+                <hr/>
+            
+                <div class="accordion">
+                    <h3>
+                        Services
+                    </h3>
+                    @foreach (var catalogItem in _catalogItems)
+                    {
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="item-@catalogItem.Id">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#item-content-@catalogItem.Id" aria-expanded="false" aria-controls="item-content-@catalogItem.Id">
+                                    @catalogItem.ItemData.Name
+                                </button>
+                            </h2>
+                            <div id="item-content-@catalogItem.Id" class="accordion-collapse collapse">
+                                <div class="accordion-body">
+                                    <p>
+                                        @catalogItem.ItemData.Description
+                                    </p>
+
+                                    @foreach (var variant in catalogItem.ItemData.Variations)
+                                    {
+                                        <span>
+                                            @($"{variant.ItemVariationData.Name} - Duration: {FormatTime(variant.ItemVariationData.ServiceDuration)} - Price: {FormatPrice(variant.ItemVariationData)}")
+                                        </span>
+                                        <button class="btn btn-outline-primary">Book</button>
+                                        <hr/>
+                                    }
+                                </div>
+                            </div >
+                        </div>
+                    }
+                </div>
+                
+            </div>
+            <div class="col col-6">
+
+                <h3>Meet the team</h3>
+                <h4>Loading...</h4>
+                
+                <h3>Upcoming Appointments</h3>
+                @if (_appointments.Any())
+                {
+                    <div class="">
+                        @foreach (var appointment in _appointments)
+                        {
+                            <ePine.Areas.Shared.AppointmentListElem
+                                AppointmentModel="appointment"
+                                OnDetailsAppointment="ShowAppointmentDetails"
+                                OnCancelAppointment="CancelAppointment"/>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <h4>No appointments yet.</h4>
+                }
+            </div>
+        </div>
+    </div>
+}
+
+<div class="modal fade" id="details-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+    <ePine.Areas.Shared.AppointmentDetailsModal AppointmentModel="_appointment"/>
+</div>
+
+@code {
+
+    [Parameter]
+    public string Id { get; set; }
+
+    private MerchantModel Merchant { get; set; }
+
+    private IList<CatalogObject> _catalogItems;
+    private IList<AppointmentModel> _appointments;
+    private IList<Location> _locations;
+
+    private Guid _userId;
+    private AppointmentDetails _appointment;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var claims = authenticationState.User.Claims;
+        _userId = Guid.Parse(claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value);
+
+        var parsedMerchantId = Guid.Parse(Id);
+        Merchant = MerchantService.GetMerchant(parsedMerchantId);
+        _catalogItems = CatalogService.GetCatalogItems(parsedMerchantId);
+        _locations = LocationService.GetLocations(parsedMerchantId);
+        _appointments = BookingService.GetGeneralAppointmentsByMerchantId(_userId, parsedMerchantId);
+    }
+
+    public string FormatTime(long? seconds)
+    {
+        var timeSpan = TimeSpan.FromMilliseconds(((int)seconds)!);
+        return $"{timeSpan.Hours:D2}h:{timeSpan.Minutes:D2}m";
+    }
+
+    public string FormatPrice(CatalogItemVariation variation)
+    {
+        return variation.PricingType == "VARIABLE_PRICING" 
+            ? "Price variable" 
+            : $"{variation.PriceMoney.Amount/100}.{variation.PriceMoney.Amount%100} {variation.PriceMoney.Currency}";
+    }
+
+    private void SearchAppointments()
+    {
+        _appointments = BookingService.GetGeneralAppointmentsByMerchantId(_userId, Guid.Parse(Id));
+    }
+
+    private void ShowAppointmentDetails(Guid id)
+    {
+        _appointment = null;
+        _appointment = BookingService.GetBooking(id);
+    }
+
+    private void CancelAppointment(Guid id)
+    {
+        BookingService.CancelAppointment(id);
+        SearchAppointments();
+    }
+}

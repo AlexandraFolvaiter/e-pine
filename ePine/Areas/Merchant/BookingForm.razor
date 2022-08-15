@@ -1,0 +1,221 @@
+﻿@using ePine.Business.Contracts
+@using ePine.Models
+@using Square
+@using Square.Models
+
+@attribute [Authorize]
+
+@inject ILocationService LocationService
+@inject ICatalogService CatalogService
+@inject IBookingService BookingService
+@inject AuthenticationStateProvider AuthenticationStateProvider
+
+<div class="modal-dialog booking-dialog">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h5 class="modal-title">Create a booking</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        
+        <EditForm OnValidSubmit="@SendCreateRequest" EditContext="_editContext" class="container">
+            <div class="modal-body row">
+                <div class="col col-4">
+                    <div class="form-field">
+                        <label class="control-label">Location* </label>
+                        <InputSelect class="form-control form-select" @bind-Value="@BookingModel.LocationId">
+                            <option selected>Choose a location</option>
+                            @foreach (var location in _locations)
+                            {
+                                <option value="@location.Id">@($"{location.Name}")
+                                </option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <hr/>
+                    <div class="form-field">
+                        <label class="control-label">Service* </label>
+                        <InputSelect class="form-control form-select" @bind-Value="@BookingModel.ServiceDetails">
+                            <option selected>Choose a service to book</option>
+                            @foreach (var catalogItem in _catalogItems)
+                            {
+                                @foreach (var variant in catalogItem.ItemData.Variations)
+                                {
+                                    <option value="@($"{variant.Id}&&{variant.Version}&&{catalogItem.ItemData.Name} - {variant.ItemVariationData.Name}")">
+                                        @($"{catalogItem.ItemData.Name} - {variant.ItemVariationData.Name}")
+                                    </option>
+                                }
+                            }
+                        </InputSelect>
+                    </div>
+                    <hr/>
+                    <div class="form-field">
+                        <label class="control-label">Team member* </label>
+                        <InputSelect class="form-control form-select" @bind-Value="@BookingModel.TeamMemberId">
+                            <option selected>Choose a team member</option>
+                            @foreach (var teamMember in _teamMembers)
+                            {
+                                <option value="@teamMember.Id">@($"{teamMember.GivenName} {teamMember.FamilyName}")
+                                </option>
+                            }
+                        </InputSelect>
+                    </div>
+                    <hr/>
+                    <div class="form-field">
+                        <b>When? Search availability for the time range</b>
+                        <div>
+                            StartDate: <InputDate class="form-control" DisplayName="StartDate" @bind-Value="@BookingModel.SearchAvailabilityStartDate"/>
+                            EndDate: <InputDate class="form-control" DisplayName="EndDate" @bind-Value="@BookingModel.SearchAvailabilityEndDate"/>
+                        </div>
+                    </div>
+                </div>
+               
+                <div class="col col-8">
+                    <div class="form-field">
+                        <h3>Availability for booking</h3>
+                        <div class="search-availability-container">
+                            @if(SearchAvailabilities != null && CanCallSearchAvailableSlots())
+                            {
+                                if (!SearchAvailabilities.Any())
+                                {
+                                    <p>No available slots in this time range. Please modify to change!</p>
+                                }
+                                @foreach (var availability in SearchAvailabilities)
+                                {
+                                    <h3>@availability.Key</h3>
+
+                                    <div class="container">
+                                        <div class="row row-cols-2 row-cols-lg-5 g-2 g-lg-3">
+
+                                            @foreach (var elem in availability)
+                                            {
+                                                <div class="col">
+                                                    <div class="@GetSlotClass(elem.StartAt)" @onclick="() => SelectSlot(elem.StartAt)">@($"{DateTime.Parse(elem.StartAt):hh:mm tt}")</div>
+                                                </div>
+                                            }
+                                        </div>
+                                    </div>
+                                    <hr/>
+                                }
+                            }
+                            else
+                            {
+                                <p>Please add all the information to show the available slots!</p>
+                            }
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" disabled="@(!CanCallSearchAvailableSlots() || BookingModel.SelectedStartAt == null)" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#overview-modal">See appointment details</button>
+                
+                <div class="modal fade" id="overview-modal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-5" aria-hidden="true">
+                    <div class="modal-dialog  modal-dialog-centered">
+                        <div class="modal-content overview-modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Appointment overview</h5>
+                            </div>
+                            <div class="modal-body container">
+                                <div class="row">
+                                    <div class="col col-5">Location</div>
+                                    <div class="col col-7">@_locations.FirstOrDefault(l => l.Id.Equals(BookingModel.LocationId))?.Name <hr/></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col col-5">Service</div>
+                                    <div class="col col-7">@BookingModel.ServiceName <hr/></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col col-5">TeamMember</div>
+                                    <div class="col col-7">@_teamMembers.FirstOrDefault(tm => tm.Id.Equals(BookingModel.TeamMemberId))?.GivenName <hr/></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col col-5">Starts at:</div>
+                                    <div class="col col-7">@($"{BookingModel.SelectedStartAt}")<hr/></div>
+                                </div>
+                                <div class="row">
+                                    <div class="col col-5">Add extra details</div>
+                                    <div class="col col-7"> <InputTextArea class="form-control" @bind-Value="@BookingModel.CustomerNote"></InputTextArea></div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Book</button> 
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </EditForm>
+    </div>
+</div>
+@code {
+    [Parameter]
+    public string MerchantId { get; set; }
+    [Parameter]
+    public EventCallback<int> OnBookingCompleted { get; set; }
+
+    public BookingCreateModel BookingModel = new BookingCreateModel();
+
+    private IList<CatalogObject> _catalogItems;
+    private IList<Location> _locations;
+    private IList<TeamMember> _teamMembers;
+    private IEnumerable<IGrouping<string, Availability>> SearchAvailabilities { get; set; }
+    private EditContext _editContext;
+
+    protected override void OnInitialized()
+    {
+        var parsedMerchantId = Guid.Parse(MerchantId);
+        BookingModel.MerchantId = parsedMerchantId;
+        _locations = LocationService.GetLocations(parsedMerchantId);
+        _catalogItems = CatalogService.GetCatalogItems(parsedMerchantId);
+        _teamMembers = BookingService.GetTeamMembers(parsedMerchantId);
+        
+        _editContext = new EditContext(BookingModel);
+        _editContext.OnFieldChanged += SearchAvailability;
+    }
+
+    public async Task SendCreateRequest()
+    {
+        var authenticationState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var claims = authenticationState.User.Claims;
+        var userId = claims.FirstOrDefault(c => c.Type == "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier")?.Value;
+
+        BookingModel.MerchantId = Guid.Parse(MerchantId);
+        BookingService.CreateAppointment(Guid.Parse(userId), BookingModel);
+        await OnBookingCompleted.InvokeAsync();
+        BookingModel = new BookingCreateModel();
+    }
+
+    public void SearchAvailability(object sender, FieldChangedEventArgs e)
+    {
+        if (CanCallSearchAvailableSlots())
+        {
+            BookingModel.MerchantId = Guid.Parse(MerchantId);
+            SearchAvailabilities = BookingService
+                .SearchAvailabilities(BookingModel)
+                .GroupBy(availability => availability.StartAt[..10]);
+        }
+    }
+
+    public void SelectSlot(string startAt)
+    {
+        BookingModel.SelectedStartAt = startAt;
+    }
+
+    public string GetSlotClass(string startAt)
+    {
+        var extraClass = startAt.Equals(BookingModel.SelectedStartAt)
+            ? " selected"
+            : string.Empty;
+        return $"p-3 appointment-availability-slot-container{extraClass}";
+    }
+
+    private bool CanCallSearchAvailableSlots()
+    {
+        return BookingModel.LocationId != null &&
+               BookingModel.TeamMemberId != null &&
+               BookingModel.ServiceVariantId != null;
+    }
+}

@@ -1,0 +1,55 @@
+﻿@using Square.Models
+@using ePine.Models
+
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Appointment details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                @if (AppointmentModel == null)
+                {
+                    <h3>Loading..</h3>
+                }
+                else
+                {
+                    <div class="container">
+                        <div class="row">
+                            <div class="col col-5">Service</div>
+                            <div class="col col-7">@AppointmentModel.AppointmentModel.Name<hr/></div>
+                        </div>
+                        <div class="row">
+                            <div class="col col-5">Location</div>
+                            <div class="col col-7">@AppointmentModel.Location<hr/></div>
+                        </div>
+                        <div class="row">
+                            <div class="col col-5">Date and time</div>
+                            <div class="col col-7">@AppointmentModel.AppointmentModel.DateAndTime<hr/></div>
+                        </div>
+                        <div class="row">
+                            <div class="col col-5">Service duration</div>
+                            <div class="col col-7">@($"{AppointmentModel.Booking.AppointmentSegments.FirstOrDefault().DurationMinutes} minutes")<hr/></div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col col-5">Team member</div>
+                            <div class="col col-7">@AppointmentModel.TeamMember<hr/></div>
+                        </div>
+                        <div class="row">
+                            <div class="col col-5">Customer Note</div>
+                            <div class="col col-7">@AppointmentModel.Booking.CustomerNote</div>
+                        </div>
+                    </div>  
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+
+@code {
+    [Parameter]
+    public AppointmentDetails AppointmentModel { get; set; }
+}
