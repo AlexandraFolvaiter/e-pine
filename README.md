@@ -34,4 +34,4 @@ a SQL Server database where minimal information about users, merchants and appoi
 ## Links
 Application: https://epine.azurewebsites.net/
 
-Demo: https://www.youtube.com/watch?v=Kopeo_5Uk8w
+Demo: [https://www.youtube.com/watch?v=Kopeo_5Uk8w](https://www.youtube.com/watch?v=xh71jan8MFA)
